@@ -14,5 +14,6 @@
       "project": ["src/**/*.ts", "scripts/**/*.ts"]
     }
   },
-  "ignoreDependencies": []
+  "ignoreDependencies": [],
+  "ignore": ["mobile/**"]
 }

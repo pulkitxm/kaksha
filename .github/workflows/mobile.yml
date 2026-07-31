@@ -1,0 +1,34 @@
+name: Mobile
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install workspace
+        run: npm ci
+      - name: Build core
+        run: npm run build -w @kaksha/core
+      - name: Install app dependencies
+        run: npm --prefix mobile ci
+      - name: Type-check the app
+        run: npm run mobile:typecheck
+      - name: Bundle for Android
+        run: npm run mobile:bundle

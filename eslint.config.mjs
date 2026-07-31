@@ -11,6 +11,7 @@ export default config(
       "**/.next/**",
       "**/coverage/**",
       "server/drizzle/**",
+      "mobile/**",
       "core/dist/**",
     ],
   },
