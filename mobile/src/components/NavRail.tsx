@@ -1,14 +1,22 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import Animated, { ZoomIn } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
+import { PressableScale, type IconName } from "./ui";
 
 export type ViewKey = "grid" | "list" | "teachers" | "share";
 
-const ITEMS: { key: ViewKey; label: string }[] = [
-  { key: "grid", label: "Grid" },
-  { key: "list", label: "List" },
-  { key: "teachers", label: "Teachers" },
-  { key: "share", label: "Share" },
+const ITEMS: { key: ViewKey; label: string; icon: IconName; activeIcon: IconName }[] = [
+  { key: "grid", label: "Grid", icon: "grid-outline", activeIcon: "grid" },
+  { key: "list", label: "List", icon: "list-outline", activeIcon: "list" },
+  { key: "teachers", label: "Teachers", icon: "people-outline", activeIcon: "people" },
+  {
+    key: "share",
+    label: "Share",
+    icon: "share-social-outline",
+    activeIcon: "share-social",
+  },
 ];
 
 export function NavRail({
@@ -27,7 +35,7 @@ export function NavRail({
       style={
         expanded
           ? {
-              width: 132,
+              width: 148,
               borderRightColor: theme.line,
               borderRightWidth: StyleSheet.hairlineWidth,
               paddingVertical: SPACING.lg,
@@ -41,16 +49,24 @@ export function NavRail({
               borderTopWidth: StyleSheet.hairlineWidth,
               backgroundColor: theme.bgSubtle,
               paddingBottom: SPACING.sm,
+              paddingTop: SPACING.xs,
             }
       }
     >
       {ITEMS.map((item) => {
         const active = item.key === current;
+        const color = active
+          ? expanded
+            ? theme.accentText
+            : theme.accent
+          : theme.fgMuted;
+
         return (
-          <Pressable
+          <PressableScale
             key={item.key}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: active }}
+            label={item.label}
+            selected={active}
+            pressedScale={0.93}
             onPress={() => {
               onChange(item.key);
             }}
@@ -59,34 +75,51 @@ export function NavRail({
                 ? {
                     backgroundColor: active ? theme.accent : "transparent",
                     borderRadius: RADIUS.md,
-                    paddingVertical: 12,
+                    paddingVertical: 11,
                     paddingHorizontal: SPACING.md,
                     minHeight: 44,
-                    justifyContent: "center",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: SPACING.sm,
                   }
                 : {
                     flex: 1,
                     alignItems: "center",
-                    paddingVertical: SPACING.md,
-                    minHeight: 48,
+                    paddingVertical: SPACING.sm,
+                    minHeight: 50,
                     justifyContent: "center",
+                    gap: 2,
                   }
             }
           >
+            <Ionicons
+              name={active ? item.activeIcon : item.icon}
+              size={expanded ? 17 : 20}
+              color={color}
+            />
             <Text
               style={{
-                color: active
-                  ? expanded
-                    ? theme.accentText
-                    : theme.accent
-                  : theme.fgMuted,
+                color,
                 fontWeight: active ? "700" : "500",
-                fontSize: expanded ? 14 : 13,
+                fontSize: expanded ? 14 : 11,
               }}
             >
               {item.label}
             </Text>
-          </Pressable>
+            {!expanded && active ? (
+              <Animated.View
+                entering={ZoomIn.duration(180)}
+                style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: RADIUS.pill,
+                  backgroundColor: theme.accent,
+                }}
+              />
+            ) : (
+              <View style={expanded ? undefined : { width: 4, height: 4 }} />
+            )}
+          </PressableScale>
         );
       })}
     </View>
