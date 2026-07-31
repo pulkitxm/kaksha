@@ -26,7 +26,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "space.kaksha.app"
     },
-    "plugins": ["expo-router", "expo-sharing", "expo-status-bar"],
+    "plugins": [
+      "expo-router",
+      "expo-sharing",
+      "expo-status-bar",
+      "./plugins/with-landscape-lock.js"
+    ],
     "experiments": {
       "typedRoutes": true
     },
