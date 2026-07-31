@@ -25,7 +25,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "space.kaksha.app"
     },
-    "plugins": ["expo-router"],
+    "plugins": ["expo-router", "expo-sharing", "expo-status-bar"],
     "experiments": {
       "typedRoutes": true
     },
