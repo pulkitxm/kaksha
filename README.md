@@ -1,16 +1,38 @@
 # Kaksha
 
-Server-rendered class timetable manager. All data lives as JSON tables in `data/`, joined by id at
-request time and served through the app's own REST API.
+Server-rendered class timetable manager. Data lives in Postgres (Neon), accessed with Drizzle
+and validated with Zod at every boundary, then served through the app's own REST API.
 
 ```bash
-bun dev      # or npm run dev
+cp .env.example .env.local   # set DATABASE_URL
+npm run db:migrate           # create the schema
+npm run db:seed              # load data/ into Postgres
+bun dev                      # or npm run dev
 ```
 
-## Data model
+## Database
 
-The JSON files behave like database tables. Rows reference each other by id, so a teacher or
-subject is renamed in exactly one place.
+| Script | Purpose |
+| --- | --- |
+| `npm run db:generate` | Write a migration from `src/db/schema.ts` |
+| `npm run db:migrate` | Apply pending migrations |
+| `npm run db:push` | Push the schema without a migration file |
+| `npm run db:seed` | Validate `data/` and reload it into Postgres |
+| `npm run db:studio` | Browse the data in Drizzle Studio |
+
+Tables are fully normalised: `subjects`, `teachers`, `classes`, `periods`, `class_subjects`,
+`sections`, `section_electives`, `entries`, `entry_days` and `entry_assignments`. Days and
+assignments are join tables rather than arrays, so "who teaches on Monday" is a real query.
+
+Every read is parsed through a Zod schema before the app sees it, so a hand-edited row that
+breaks an invariant fails loudly at the boundary rather than rendering as `undefined`. Query
+parameters go through the same treatment: unknown ids and out-of-range days or periods are
+dropped individually instead of failing the request.
+
+## Seed data
+
+The JSON in `data/` is the seed source, not the runtime store. Rows reference each other by id,
+so a teacher or subject is renamed in exactly one place.
 
 | File | Row | Notes |
 | --- | --- | --- |
@@ -76,10 +98,11 @@ Classes 7 to 12 exist with empty entry files, ready to fill in.
 1. Set `active: true` and list `periods` and `subjectIds` in `data/classes.json`.
 2. Add its sections to `data/sections.json` with the matching `classId`.
 3. Fill `data/entries/<classId>.json`.
+4. Run `npm run db:seed`.
 
 ## API
 
-Every route reads the JSON fresh, so an edit shows up on reload with no restart.
+Every route queries Postgres per request; nothing is cached between requests.
 
 | Route | Purpose |
 | --- | --- |
@@ -90,7 +113,8 @@ Every route reads the JSON fresh, so an edit shows up on reload with no restart.
 | `GET /api/health` | Dangling ids and other integrity issues |
 
 `/api/timetable` accepts `class`, plus repeatable or comma-joined `teacher`, `subject`,
-`section`, `day`, `period`, `group` and a free-text `q`.
+`section`, `day`, `period`, `group` and a free-text `q`. `/api/share` renders the current
+selection as a PNG and also takes `theme=light|dark`.
 
 ```bash
 curl 'localhost:3000/api/timetable?class=6&teacher=tch_renu-yadav' | jq .teacherLoad

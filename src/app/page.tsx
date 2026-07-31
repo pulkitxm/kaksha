@@ -208,10 +208,9 @@ export default async function Page({
 
       <footer className="no-print border-t border-line px-4 py-4 sm:px-6">
         <p className="mx-auto max-w-[1600px] text-xs break-words text-fg-faint">
-          Data lives in <code className="font-mono break-all">data/</code> as JSON tables. Edit{" "}
-          <code className="font-mono break-all">entries/&lt;classId&gt;.json</code>,{" "}
-          <code className="font-mono break-all">teachers.json</code> or{" "}
-          <code className="font-mono break-all">subjects.json</code> and reload.
+          Served from Postgres via Drizzle. The JSON in{" "}
+          <code className="font-mono break-all">data/</code> is the seed source: edit it and
+          run <code className="font-mono break-all">npm run db:seed</code> to reload.
         </p>
       </footer>
     </div>

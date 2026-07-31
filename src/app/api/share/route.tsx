@@ -7,6 +7,7 @@ import {
   type ShareCell,
   type ShareTheme,
 } from "@/lib/share";
+import { themeParamSchema } from "@/lib/schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const data = await getTimetable(parseClassId(params), parseFilters(params));
   const model = buildShareModel(data);
-  const dark = params.get("theme") !== "light";
+  const dark = themeParamSchema.parse(params.get("theme") ?? "dark") !== "light";
   const theme = dark ? SHARE_THEMES.dark : SHARE_THEMES.light;
 
   const dayCount = Math.max(model.days.length, 1);

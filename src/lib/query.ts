@@ -1,6 +1,7 @@
 import "server-only";
 
 import { colorForKey, isColorToken } from "./colors";
+import { classParamSchema, filtersSchema } from "./schemas";
 import {
   getClasses,
   getDays,
@@ -36,42 +37,34 @@ export const EMPTY_FILTERS: Filters = {
   q: "",
 };
 
-function listParam(value: string | string[] | undefined | null): string[] {
-  if (!value) return [];
-  const raw = Array.isArray(value) ? value : [value];
-  return raw
-    .flatMap((item) => item.split(","))
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
 type ParamSource =
   | URLSearchParams
   | Record<string, string | string[] | undefined>;
 
-export function parseFilters(input: ParamSource): Filters {
-  const get = (key: string) =>
-    input instanceof URLSearchParams ? input.getAll(key) : input[key];
+function toRecord(input: ParamSource): Record<string, string | string[] | undefined> {
+  if (!(input instanceof URLSearchParams)) return input;
 
-  return {
-    teacher: listParam(get("teacher")),
-    subject: listParam(get("subject")),
-    section: listParam(get("section")),
-    group: listParam(get("group")),
-    day: listParam(get("day"))
-      .map(Number)
-      .filter(Number.isFinite),
-    period: listParam(get("period"))
-      .map(Number)
-      .filter(Number.isFinite),
-    q: (listParam(get("q"))[0] ?? "").trim().toLowerCase(),
-  };
+  const record: Record<string, string[]> = {};
+  for (const key of new Set(input.keys())) record[key] = input.getAll(key);
+  return record;
+}
+
+export function parseFilters(input: ParamSource): Filters {
+  const record = toRecord(input);
+  return filtersSchema.parse({
+    teacher: record.teacher,
+    subject: record.subject,
+    section: record.section,
+    group: record.group,
+    day: record.day,
+    period: record.period,
+    q: record.q,
+  });
 }
 
 export function parseClassId(input: ParamSource): string | null {
-  const get = (key: string) =>
-    input instanceof URLSearchParams ? input.getAll(key) : input[key];
-  return listParam(get("class"))[0] ?? null;
+  const value = toRecord(input).class;
+  return classParamSchema.parse(value ?? null);
 }
 
 export function hasActiveFilters(filters: Filters): boolean {
