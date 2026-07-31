@@ -27,11 +27,20 @@ type Props = {
   title: string;
   subtitle?: string;
   onClose: () => void;
+  onDismissed?: () => void;
   children: ReactNode;
   footer?: ReactNode;
 };
 
-export function Sheet({ visible, title, subtitle, onClose, children, footer }: Props) {
+export function Sheet({
+  visible,
+  title,
+  subtitle,
+  onClose,
+  onDismissed,
+  children,
+  footer,
+}: Props) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -46,13 +55,17 @@ export function Sheet({ visible, title, subtitle, onClose, children, footer }: P
       dragY.set(0);
       progress.set(withSpring(1, SPRING));
     } else if (mounted) {
+      const settle = () => {
+        setMounted(false);
+        onDismissed?.();
+      };
       progress.set(
         withTiming(0, { duration: 200 }, (finished) => {
-          if (finished) runOnJS(setMounted)(false);
+          if (finished) runOnJS(settle)();
         }),
       );
     }
-  }, [visible, mounted, progress, dragY]);
+  }, [visible, mounted, progress, dragY, onDismissed]);
 
   const drag = Gesture.Pan()
     .onUpdate((event) => {

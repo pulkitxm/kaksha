@@ -81,11 +81,13 @@ export function EntryEditor({ target, dataset, onClose }: Props) {
   const store = useStore();
   const toast = useToast();
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   useEffect(() => {
     setDraft(target ? draftFrom(target) : null);
+    setOpen(target !== null);
     setConfirmingDelete(false);
   }, [target]);
 
@@ -163,7 +165,7 @@ export function EntryEditor({ target, dataset, onClose }: Props) {
         result === "synced" ? "Lecture saved" : "Saved offline, syncs later",
         "success",
       );
-      onClose();
+      setOpen(false);
     } catch (cause) {
       toast(cause instanceof Error ? cause.message : "Could not save", "error");
     } finally {
@@ -181,7 +183,7 @@ export function EntryEditor({ target, dataset, onClose }: Props) {
         "success",
       );
       setConfirmingDelete(false);
-      onClose();
+      setOpen(false);
     } catch (cause) {
       toast(cause instanceof Error ? cause.message : "Could not delete", "error");
       setConfirmingDelete(false);
@@ -193,14 +195,17 @@ export function EntryEditor({ target, dataset, onClose }: Props) {
   return (
     <>
       <Sheet
-        visible
+        visible={open}
         title={target.mode === "edit" ? "Edit lecture" : "New lecture"}
         subtitle={
           target.mode === "edit"
             ? "Changes apply instantly and sync to the server"
             : "Fill in the slot to add it to the timetable"
         }
-        onClose={onClose}
+        onClose={() => {
+          setOpen(false);
+        }}
+        onDismissed={onClose}
         footer={
           <View style={{ flexDirection: "row", gap: SPACING.md }}>
             {target.mode === "edit" ? (
