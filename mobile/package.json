@@ -13,7 +13,7 @@
   "dependencies": {
     "@babel/runtime": "^8.0.0",
     "@kaksha/core": "file:../core",
-    "expo": "~52.0.47",
+    "expo": "~57.0.9",
     "expo-asset": "^57.0.8",
     "expo-constants": "~17.0.8",
     "expo-file-system": "~18.0.12",
