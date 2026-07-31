@@ -14,12 +14,10 @@ function EntryBlock({
   entry,
   days,
   compact,
-  dimmed,
 }: {
   entry: ResolvedEntry;
   days: Day[];
   compact: boolean;
-  dimmed: boolean;
 }) {
   const primary = entry.assignments[0];
   const tone = swatch(primary?.subject.color ?? "slate");
@@ -28,9 +26,7 @@ function EntryBlock({
 
   return (
     <div
-      className={`rounded-md border px-1.5 py-1 transition-opacity ${tone.bg} ${tone.border} ${
-        dimmed ? "opacity-25 grayscale" : ""
-      }`}
+      className={`rounded-md border px-1.5 py-1 ${tone.bg} ${tone.border}`}
       title={`Days ${range} · ${entry.assignments
         .map((a) => `${a.subject.name}${a.teacher ? ` (${a.teacher.name})` : ""}`)
         .join(" / ")}`}
@@ -74,12 +70,19 @@ export function TimetableGrid({
   entries,
   filtersActive,
 }: Props) {
+  const visible = filtersActive ? entries.filter((entry) => entry.matched) : entries;
+
   const byCell = new Map<string, ResolvedEntry[]>();
-  for (const entry of entries) {
+  const matchesBySection = new Map<string, number>();
+  for (const entry of visible) {
     const key = `${entry.sectionId}:${entry.periodId}`;
     const bucket = byCell.get(key);
     if (bucket) bucket.push(entry);
     else byCell.set(key, [entry]);
+    matchesBySection.set(
+      entry.sectionId,
+      (matchesBySection.get(entry.sectionId) ?? 0) + entry.lectures,
+    );
   }
   for (const bucket of byCell.values()) {
     bucket.sort((a, b) => (a.dayIds[0] ?? 0) - (b.dayIds[0] ?? 0));
@@ -135,66 +138,97 @@ export function TimetableGrid({
           </thead>
 
           <tbody>
-            {sections.map((section) => (
-              <tr key={section.id} className="group">
-                <th
-                  scope="row"
-                  className="sticky left-0 z-10 border-b border-r border-line bg-panel px-3 py-2 text-left align-top"
-                >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line-strong bg-bg-subtle text-sm font-semibold">
-                    {section.name}
-                  </span>
-                  {section.electives.length > 0 ? (
-                    <span
-                      className="mt-1.5 block text-[10px] leading-relaxed"
-                      title={`Extra subjects: ${section.electives
-                        .map((subject) => subject.name)
-                        .join(", ")}`}
+            {sections.map((section) => {
+              const sectionMatches = matchesBySection.get(section.id) ?? 0;
+
+              if (filtersActive && sectionMatches === 0) {
+                return (
+                  <tr key={section.id}>
+                    <th
+                      scope="row"
+                      className="sticky left-0 z-10 border-b border-r border-line bg-panel px-3 py-1.5 text-left"
                     >
-                      {section.electives.map((subject, index) => (
-                        <span key={subject.id}>
-                          {index > 0 ? <span className="text-fg-faint"> · </span> : null}
-                          <span className={swatch(subject.color).text}>{subject.code}</span>
-                        </span>
-                      ))}
-                    </span>
-                  ) : null}
-                  {section.note ? (
-                    <span className="mt-1 inline-block rounded border border-line px-1 py-px font-mono text-[9px] uppercase tracking-wide text-fg-faint">
-                      {section.note}
-                    </span>
-                  ) : null}
-                </th>
-
-                {periods.map((period) => {
-                  const cell = byCell.get(`${section.id}:${period.id}`) ?? [];
-                  const compact = cell.length > 2;
-
-                  return (
+                      <span className="flex h-5 w-5 items-center justify-center rounded border border-line text-[11px] font-medium text-fg-faint">
+                        {section.name}
+                      </span>
+                    </th>
                     <td
-                      key={period.id}
-                      className="border-b border-r border-line p-1.5 align-top last:border-r-0"
+                      colSpan={periods.length}
+                      className="border-b border-line px-3 py-1.5 text-[11px] text-fg-faint"
                     >
-                      {cell.length === 0 ? (
-                        <span className="block py-3 text-center text-xs text-fg-faint/50">-</span>
-                      ) : (
-                        <div className="space-y-1">
-                          {cell.map((entry) => (
-                            <EntryBlock
-                              key={entry.id}
-                              entry={entry}
-                              days={days}
-                              compact={compact}
-                              dimmed={filtersActive && !entry.matched}
-                            />
-                          ))}
-                        </div>
-                      )}
+                      No matching lectures
                     </td>
-                  );
-                })}
-              </tr>
-            ))}
+                  </tr>
+                );
+              }
+
+              return (
+                <tr key={section.id} className="group">
+                  <th
+                    scope="row"
+                    className="sticky left-0 z-10 border-b border-r border-line bg-panel px-3 py-2 text-left align-top"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-line-strong bg-bg-subtle text-sm font-semibold">
+                        {section.name}
+                      </span>
+                      {filtersActive ? (
+                        <span className="font-mono text-[10px] text-fg-faint">
+                          {sectionMatches}
+                        </span>
+                      ) : null}
+                    </span>
+                    {section.electives.length > 0 ? (
+                      <span
+                        className="mt-1.5 block text-[10px] leading-relaxed"
+                        title={`Extra subjects: ${section.electives
+                          .map((subject) => subject.name)
+                          .join(", ")}`}
+                      >
+                        {section.electives.map((subject, index) => (
+                          <span key={subject.id}>
+                            {index > 0 ? <span className="text-fg-faint"> · </span> : null}
+                            <span className={swatch(subject.color).text}>{subject.code}</span>
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                    {section.note ? (
+                      <span className="mt-1 inline-block rounded border border-line px-1 py-px font-mono text-[9px] uppercase tracking-wide text-fg-faint">
+                        {section.note}
+                      </span>
+                    ) : null}
+                  </th>
+
+                  {periods.map((period) => {
+                    const cell = byCell.get(`${section.id}:${period.id}`) ?? [];
+                    const compact = cell.length > 2;
+
+                    return (
+                      <td
+                        key={period.id}
+                        className="border-b border-r border-line p-1.5 align-top last:border-r-0"
+                      >
+                        {cell.length === 0 ? (
+                          <span className="block py-3 text-center text-xs text-fg-faint/50">-</span>
+                        ) : (
+                          <div className="space-y-1">
+                            {cell.map((entry) => (
+                              <EntryBlock
+                                key={entry.id}
+                                entry={entry}
+                                days={days}
+                                compact={compact}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
