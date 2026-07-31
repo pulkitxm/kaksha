@@ -8,13 +8,6 @@ on:
       - "core/**"
       - ".github/workflows/mobile-release.yml"
   workflow_dispatch:
-    inputs:
-      bump:
-        description: Which part of the version to raise
-        required: true
-        default: patch
-        type: choice
-        options: [patch, minor, major]
 
 permissions:
   contents: write
@@ -26,12 +19,9 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -53,41 +43,33 @@ jobs:
       - name: Install app dependencies
         run: cd mobile && bun install --frozen-lockfile
 
-      - name: Raise the app version
+      - name: Resolve the version
         id: version
-        run: bun run scripts/bump-version.mjs "${{ inputs.bump || 'patch' }}"
+        run: bun run scripts/release-version.mjs
 
       - name: Build the APK
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_HOME }}
         run: bun run apk:local
 
-      - name: Rename the artifact
-        run: mv mobile/build/app-release.apk "mobile/build/kaksha-${{ steps.version.outputs.version }}.apk"
-
-      - name: Commit the version bump
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add mobile/app.json mobile/package.json
-          git commit -m "Release mobile ${{ steps.version.outputs.version }}"
-          git tag "mobile-v${{ steps.version.outputs.version }}"
-          git push origin HEAD:main --follow-tags
+      - name: Name the artifact
+        run: mv mobile/build/app-release.apk "mobile/build/${{ steps.version.outputs.artifact }}"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: kaksha-${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.artifact }}
           path: mobile/build/*.apk
           retention-days: 30
 
       - name: Publish the release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: mobile-v${{ steps.version.outputs.version }}
-          name: Kaksha ${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: Kaksha ${{ steps.version.outputs.version }} (build ${{ steps.version.outputs.code }})
           body: |
-            Android build ${{ steps.version.outputs.version }} (versionCode ${{ steps.version.outputs.code }}).
+            Android build ${{ steps.version.outputs.code }} of version ${{ steps.version.outputs.version }}.
 
-            Install the APK on a device with unknown sources enabled.
+            Built from ${{ github.sha }}.
+
+            Enable installs from unknown sources, then open the APK on the device.
           files: mobile/build/*.apk
           fail_on_unmatched_files: true
+          make_latest: true
