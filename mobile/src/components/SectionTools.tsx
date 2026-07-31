@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import type { ResolvedDataset } from "@kaksha/core";
 
-import { mergeSections, renameSection, reorderSections } from "../lib/api";
+import { useStore } from "../lib/store";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
 import { Banner, Button } from "./ui";
 
@@ -23,6 +23,7 @@ type Props = {
 
 export function SectionTools({ visible, dataset, onClose, onSaved }: Props) {
   const theme = useTheme();
+  const store = useStore();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [renameId, setRenameId] = useState<string | null>(null);
@@ -161,7 +162,11 @@ export function SectionTools({ visible, dataset, onClose, onSaved }: Props) {
                   disabled={busy || renameValue.trim().length === 0}
                   onPress={() => {
                     void run(async () => {
-                      await renameSection(renameId, renameValue.trim());
+                      await store.mutate({
+                        kind: "renameSection",
+                        id: renameId,
+                        name: renameValue.trim(),
+                      });
                       setRenameId(null);
                     });
                   }}
@@ -217,11 +222,14 @@ export function SectionTools({ visible, dataset, onClose, onSaved }: Props) {
               onPress={() => {
                 if (!mergeSource || !mergeTarget) return;
                 void run(async () => {
-                  await mergeSections({
-                    classId: dataset.classId,
-                    sourceId: mergeSource,
-                    targetId: mergeTarget,
-                    relabel: true,
+                  await store.mutate({
+                    kind: "mergeSections",
+                    input: {
+                      classId: dataset.classId,
+                      sourceId: mergeSource,
+                      targetId: mergeTarget,
+                      relabel: true,
+                    },
                   });
                   setMergeSource(null);
                   setMergeTarget(null);
@@ -239,10 +247,13 @@ export function SectionTools({ visible, dataset, onClose, onSaved }: Props) {
                 disabled={busy}
                 onPress={() => {
                   void run(() =>
-                    reorderSections({
-                      classId: dataset.classId,
-                      orderedIds: dataset.sections.map((section) => section.id),
-                      relabel: true,
+                    store.mutate({
+                      kind: "reorderSections",
+                      input: {
+                        classId: dataset.classId,
+                        orderedIds: dataset.sections.map((section) => section.id),
+                        relabel: true,
+                      },
                     }),
                   );
                 }}

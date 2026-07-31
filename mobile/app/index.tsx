@@ -55,7 +55,7 @@ export default function Home() {
             label="Retry"
             variant="primary"
             onPress={() => {
-              void store.refresh();
+              void store.reload();
             }}
           />
         </View>
@@ -167,7 +167,7 @@ export default function Home() {
           setSectionsOpen(false);
         }}
         onSaved={() => {
-          void store.refresh();
+          void store.reload();
         }}
       />
 
@@ -178,7 +178,7 @@ export default function Home() {
           setEditing(null);
         }}
         onSaved={() => {
-          void store.refresh();
+          void store.reload();
         }}
       />
     </SafeAreaView>

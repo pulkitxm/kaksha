@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { ResolvedDataset, ResolvedEntry } from "@kaksha/core";
 
-import { deleteEntry, updateEntry } from "../lib/api";
+import { useStore } from "../lib/store";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
 import { Banner, Button, SubjectChip } from "./ui";
 
@@ -19,6 +19,7 @@ function toggle<T>(list: T[], value: T): T[] {
 
 export function EntryEditor({ entry, dataset, onClose, onSaved }: Props) {
   const theme = useTheme();
+  const store = useStore();
   const [sectionId, setSectionId] = useState(entry?.sectionId ?? "");
   const [periodId, setPeriodId] = useState(entry?.periodId ?? 0);
   const [dayIds, setDayIds] = useState<number[]>(entry?.dayIds ?? []);
@@ -44,7 +45,11 @@ export function EntryEditor({ entry, dataset, onClose, onSaved }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await updateEntry(target.id, { sectionId, periodId, dayIds, assignments });
+      await store.mutate({
+        kind: "updateEntry",
+        id: target.id,
+        patch: { sectionId, periodId, dayIds, assignments },
+      });
       onSaved();
       onClose();
     } catch (cause) {
@@ -58,7 +63,7 @@ export function EntryEditor({ entry, dataset, onClose, onSaved }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await deleteEntry(target.id);
+      await store.mutate({ kind: "deleteEntry", id: target.id });
       onSaved();
       onClose();
     } catch (cause) {
