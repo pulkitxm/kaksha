@@ -4,17 +4,20 @@ import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import {
   buildShareModel,
+  buildTeacherShareModel,
   THEMES,
   type DerivedView,
   type Filters,
   type ResolvedDataset,
   type ShareModel,
   type SurfaceTheme,
+  type Teacher,
 } from "@kaksha/core";
 
 import { SelectField } from "../components/Select";
 import { useToast } from "../components/Toast";
 import { Button, Chip } from "../components/ui";
+import { useClassDatasets } from "../lib/classDatasets";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
 
 const EXPORT_WIDTH = 1200;
@@ -273,34 +276,35 @@ export function ShareView({
   const [job, setJob] = useState<{ model: ShareModel; theme: SurfaceTheme } | null>(null);
 
   const exportTheme = exportDark ? THEMES.dark : THEMES.light;
+  const classData = useClassDatasets(dataset);
 
-  const teacherOptions = useMemo(
-    () => [
+  const teacherOptions = useMemo(() => {
+    const byId = new Map<string, Teacher>();
+    for (const source of classData.datasets) {
+      for (const teacher of source.teachers) {
+        if (!byId.has(teacher.id)) byId.set(teacher.id, teacher);
+      }
+    }
+    const merged = [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+    return [
       { id: EVERYONE, label: "Whole class", sublabel: "Everything that matches" },
-      ...dataset.teachers.map((teacher) => ({
+      ...merged.map((teacher) => ({
         id: teacher.id,
         label: teacher.name,
         sublabel: teacher.department ?? undefined,
       })),
-    ],
-    [dataset.teachers],
-  );
-
-  const scoped = useMemo(
-    () =>
-      teacherId
-        ? derived.entries.map((entry) => ({
-            ...entry,
-            matched: entry.assignments.some((a) => a.teacher?.id === teacherId),
-          }))
-        : derived.entries,
-    [derived.entries, teacherId],
-  );
+    ];
+  }, [classData.datasets]);
 
   const model = useMemo(
-    () => buildShareModel(dataset, scoped, filters, teacherId),
-    [dataset, scoped, filters, teacherId],
+    () =>
+      teacherId
+        ? buildTeacherShareModel(classData.datasets, teacherId, filters)
+        : buildShareModel(dataset, derived.entries, filters),
+    [classData.datasets, dataset, derived.entries, filters, teacherId],
   );
+
+  const awaitingClasses = teacherId !== null && classData.loading;
 
   async function deliver(uri: string) {
     if (await Sharing.isAvailableAsync()) {
@@ -349,11 +353,24 @@ export function ShareView({
 
       <ShareCard model={model} theme={exportTheme} scale={1} />
 
+      {awaitingClasses ? (
+        <Text style={{ color: appTheme.fgMuted, fontSize: 12 }}>
+          Adding lectures from the other classes
+        </Text>
+      ) : null}
+
+      {teacherId && classData.missing.length > 0 ? (
+        <Text style={{ color: appTheme.fgMuted, fontSize: 12 }}>
+          Not included right now: {classData.missing.join(", ")}
+        </Text>
+      ) : null}
+
       <Button
         label={job ? "Preparing image" : "Share as image"}
         variant="primary"
         icon="share-social-outline"
         busy={job !== null}
+        disabled={awaitingClasses}
         onPress={() => {
           setJob({ model, theme: exportTheme });
         }}
