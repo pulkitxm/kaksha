@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 const ALLOWED = [
   /^\/\/\s*eslint-(disable|enable)/,
@@ -39,7 +39,8 @@ function listFiles() {
     .map((line) => line.trim())
     .filter(Boolean)
     .filter((file) => EXTENSIONS.has(file.slice(file.lastIndexOf("."))))
-    .filter((file) => !IGNORED_PREFIXES.some((prefix) => file.startsWith(prefix)));
+    .filter((file) => !IGNORED_PREFIXES.some((prefix) => file.startsWith(prefix)))
+    .filter((file) => existsSync(file));
 }
 
 function isAllowed(text) {
