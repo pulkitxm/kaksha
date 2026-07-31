@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { ResolvedEntry } from "@kaksha/core";
 
-import { EntryEditor } from "../src/components/EntryEditor";
+import { EntryEditor, type EditorTarget } from "../src/components/EntryEditor";
 import { FilterSheet } from "../src/components/FilterSheet";
 import { GridView } from "../src/screens/GridView";
 import { ListView } from "../src/screens/ListView";
@@ -11,6 +11,7 @@ import { SectionTools } from "../src/components/SectionTools";
 import { ShareView } from "../src/screens/ShareView";
 import { TeachersView } from "../src/screens/TeachersView";
 import { Banner, Button, StatTile } from "../src/components/ui";
+import { Header } from "../src/components/Header";
 import { useLayout } from "../src/lib/layout";
 import { useStore } from "../src/lib/store";
 import { SPACING, useTheme } from "../src/lib/theme";
@@ -23,7 +24,7 @@ export default function Home() {
   const [view, setView] = useState<ViewKey>("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sectionsOpen, setSectionsOpen] = useState(false);
-  const [editing, setEditing] = useState<ResolvedEntry | null>(null);
+  const [editing, setEditing] = useState<EditorTarget | null>(null);
 
   const activeFilterCount =
     store.filters.teacher.length +
@@ -55,7 +56,7 @@ export default function Home() {
             label="Retry"
             variant="primary"
             onPress={() => {
-              void store.refresh();
+              void store.reload();
             }}
           />
         </View>
@@ -71,7 +72,10 @@ export default function Home() {
       contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg }}
       showsVerticalScrollIndicator={false}
     >
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+      <Animated.View
+        entering={FadeIn.duration(240)}
+        style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}
+      >
         <StatTile
           label={derived.filtersActive ? "Matching" : "Lectures"}
           value={stats.matchedLectures}
@@ -82,18 +86,37 @@ export default function Home() {
         {layout.isTablet ? (
           <StatTile label="Subjects" value={stats.matchedSubjects} hint="involved" />
         ) : null}
-      </View>
+      </Animated.View>
 
-      {view === "grid" ? (
-        <GridView dataset={dataset} derived={derived} onEdit={setEditing} />
-      ) : null}
-      {view === "list" ? (
-        <ListView dataset={dataset} derived={derived} onEdit={setEditing} />
-      ) : null}
-      {view === "teachers" ? <TeachersView dataset={dataset} derived={derived} /> : null}
-      {view === "share" ? (
-        <ShareView dataset={dataset} derived={derived} filters={store.filters} />
-      ) : null}
+      <Animated.View key={view} entering={FadeInDown.duration(220)}>
+        {view === "grid" ? (
+          <GridView
+            dataset={dataset}
+            derived={derived}
+            onEdit={(entry) => {
+              setEditing({ mode: "edit", entry });
+            }}
+            onCreate={(sectionId, periodId) => {
+              setEditing({ mode: "create", sectionId, periodId });
+            }}
+          />
+        ) : null}
+        {view === "list" ? (
+          <ListView
+            dataset={dataset}
+            derived={derived}
+            onEdit={(entry) => {
+              setEditing({ mode: "edit", entry });
+            }}
+          />
+        ) : null}
+        {view === "teachers" ? (
+          <TeachersView dataset={dataset} derived={derived} />
+        ) : null}
+        {view === "share" ? (
+          <ShareView dataset={dataset} derived={derived} filters={store.filters} />
+        ) : null}
+      </Animated.View>
     </ScrollView>
   );
 
@@ -102,41 +125,16 @@ export default function Home() {
       style={{ flex: 1, backgroundColor: theme.bg }}
       edges={["top", "left", "right"]}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: SPACING.lg,
-          paddingVertical: SPACING.md,
-          borderBottomColor: theme.line,
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          gap: SPACING.sm,
+      <Header
+        dataset={dataset}
+        activeFilterCount={activeFilterCount}
+        onOpenFilters={() => {
+          setFiltersOpen(true);
         }}
-      >
-        <View>
-          <Text style={{ color: theme.fg, fontSize: 18, fontWeight: "700" }}>Kaksha</Text>
-          <Text style={{ color: theme.fgFaint, fontSize: 12 }}>
-            {dataset.currentClass.name} · {String(dataset.sections.length)} sections
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", gap: SPACING.sm }}>
-          <Button
-            label={
-              activeFilterCount > 0 ? `Filters ${String(activeFilterCount)}` : "Filters"
-            }
-            onPress={() => {
-              setFiltersOpen(true);
-            }}
-          />
-          <Button
-            label="Sections"
-            onPress={() => {
-              setSectionsOpen(true);
-            }}
-          />
-        </View>
-      </View>
+        onOpenSections={() => {
+          setSectionsOpen(true);
+        }}
+      />
 
       {layout.isTablet ? (
         <View style={{ flex: 1, flexDirection: "row" }}>
@@ -152,6 +150,7 @@ export default function Home() {
 
       <FilterSheet
         visible={filtersOpen}
+        dataset={dataset}
         options={options}
         filters={store.filters}
         onApply={store.setFilters}
@@ -166,19 +165,13 @@ export default function Home() {
         onClose={() => {
           setSectionsOpen(false);
         }}
-        onSaved={() => {
-          void store.refresh();
-        }}
       />
 
       <EntryEditor
-        entry={editing}
+        target={editing}
         dataset={dataset}
         onClose={() => {
           setEditing(null);
-        }}
-        onSaved={() => {
-          void store.refresh();
         }}
       />
     </SafeAreaView>

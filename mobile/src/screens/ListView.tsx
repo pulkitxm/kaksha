@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import {
   dayNames,
   formatDayRange,
@@ -55,85 +56,95 @@ export function ListView({
         {rows.map((entry) => {
           const period = periodById.get(entry.periodId);
           return (
-            <Pressable
+            <Animated.View
               key={entry.id}
-              accessibilityRole="button"
-              onPress={() => {
-                onEdit(entry);
-              }}
-              style={({ pressed }) => ({
+              entering={FadeIn.duration(180)}
+              style={{
                 width: (layout.columns === 1
                   ? "100%"
                   : `${String(100 / layout.columns - 1)}%`) as DimensionValue,
-                backgroundColor: pressed ? theme.panelHover : theme.panel,
-                borderColor: theme.line,
-                borderWidth: StyleSheet.hairlineWidth,
-                borderRadius: RADIUS.md,
-                padding: SPACING.md,
-              })}
+              }}
             >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  onEdit(entry);
                 }}
+                style={({ pressed }) => ({
+                  backgroundColor: pressed ? theme.panelHover : theme.panel,
+                  borderColor: theme.line,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderRadius: RADIUS.md,
+                  padding: SPACING.md,
+                })}
               >
                 <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: SPACING.sm }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
                 >
                   <View
                     style={{
-                      width: 26,
-                      height: 26,
-                      borderRadius: RADIUS.sm,
-                      backgroundColor: theme.bgSubtle,
-                      borderColor: theme.lineStrong,
-                      borderWidth: StyleSheet.hairlineWidth,
+                      flexDirection: "row",
                       alignItems: "center",
-                      justifyContent: "center",
+                      gap: SPACING.sm,
                     }}
                   >
-                    <Text style={{ color: theme.fg, fontWeight: "700", fontSize: 12 }}>
-                      {sectionName.get(entry.sectionId) ?? "?"}
+                    <View
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: RADIUS.sm,
+                        backgroundColor: theme.bgSubtle,
+                        borderColor: theme.lineStrong,
+                        borderWidth: StyleSheet.hairlineWidth,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Text style={{ color: theme.fg, fontWeight: "700", fontSize: 12 }}>
+                        {sectionName.get(entry.sectionId) ?? "?"}
+                      </Text>
+                    </View>
+                    <Text style={{ color: theme.fgMuted, fontSize: 12 }}>
+                      Period {period?.label ?? entry.periodId}
                     </Text>
                   </View>
-                  <Text style={{ color: theme.fgMuted, fontSize: 12 }}>
-                    Period {period?.label ?? entry.periodId}
+                  <Text style={{ color: theme.fgFaint, fontSize: 11 }}>
+                    {formatDayRange(entry.dayIds)}
                   </Text>
                 </View>
-                <Text style={{ color: theme.fgFaint, fontSize: 11 }}>
-                  {formatDayRange(entry.dayIds)}
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: SPACING.xs,
+                    marginTop: SPACING.sm,
+                  }}
+                >
+                  {entry.assignments.map((assignment, index) => (
+                    <SubjectChip
+                      key={`${entry.id}-${String(index)}`}
+                      code={assignment.subject.code}
+                      color={assignment.subject.color}
+                      theme={theme}
+                    />
+                  ))}
+                </View>
+
+                <Text style={{ color: theme.fg, fontSize: 13, marginTop: SPACING.xs }}>
+                  {entry.assignments
+                    .map((a) => a.teacher?.name ?? "Unassigned")
+                    .join(" / ")}
                 </Text>
-              </View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: SPACING.xs,
-                  marginTop: SPACING.sm,
-                }}
-              >
-                {entry.assignments.map((assignment, index) => (
-                  <SubjectChip
-                    key={`${entry.id}-${String(index)}`}
-                    code={assignment.subject.code}
-                    color={assignment.subject.color}
-                    theme={theme}
-                  />
-                ))}
-              </View>
-
-              <Text style={{ color: theme.fg, fontSize: 13, marginTop: SPACING.xs }}>
-                {entry.assignments
-                  .map((a) => a.teacher?.name ?? "Unassigned")
-                  .join(" / ")}
-              </Text>
-              <Text style={{ color: theme.fgFaint, fontSize: 11, marginTop: 2 }}>
-                {dayNames(entry.dayIds, dataset.days)}
-              </Text>
-            </Pressable>
+                <Text style={{ color: theme.fgFaint, fontSize: 11, marginTop: 2 }}>
+                  {dayNames(entry.dayIds, dataset.days)}
+                </Text>
+              </Pressable>
+            </Animated.View>
           );
         })}
       </View>

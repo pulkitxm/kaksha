@@ -1,20 +1,22 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import type { FilterOptions, Filters } from "@kaksha/core";
+  applyFilters,
+  EMPTY_FILTERS,
+  type FilterOptions,
+  type Filters,
+  type ResolvedDataset,
+} from "@kaksha/core";
 
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
-import { Button } from "./ui";
+import { SelectField } from "./Select";
+import { Sheet } from "./Sheet";
+import { Button, Chip } from "./ui";
 
 type Props = {
   visible: boolean;
+  dataset: ResolvedDataset;
   options: FilterOptions;
   filters: Filters;
   onApply: (next: Filters) => void;
@@ -25,217 +27,195 @@ function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 }
 
-export function FilterSheet({ visible, options, filters, onApply, onClose }: Props) {
+function FilterGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  const theme = useTheme();
+  return (
+    <View style={{ marginBottom: SPACING.lg }}>
+      <Text
+        style={{
+          color: theme.fgFaint,
+          fontSize: 11,
+          letterSpacing: 0.8,
+          marginBottom: SPACING.sm,
+        }}
+      >
+        {title.toUpperCase()}
+      </Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+        {children}
+      </View>
+    </View>
+  );
+}
+
+export function FilterSheet({
+  visible,
+  dataset,
+  options,
+  filters,
+  onApply,
+  onClose,
+}: Props) {
   const theme = useTheme();
   const [draft, setDraft] = useState<Filters>(filters);
 
-  function Chip({
-    label,
-    active,
-    onPress,
-  }: {
-    label: string;
-    active: boolean;
-    onPress: () => void;
-  }) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ selected: active }}
-        onPress={onPress}
-        style={{
-          backgroundColor: active ? theme.accent : theme.panel,
-          borderColor: active ? theme.accent : theme.lineStrong,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderRadius: RADIUS.pill,
-          paddingHorizontal: SPACING.md,
-          paddingVertical: 8,
-          marginRight: SPACING.sm,
-          marginBottom: SPACING.sm,
-          minHeight: 36,
-          justifyContent: "center",
-        }}
-      >
-        <Text style={{ color: active ? theme.accentText : theme.fg, fontSize: 13 }}>
-          {label}
-        </Text>
-      </Pressable>
-    );
-  }
+  useEffect(() => {
+    if (visible) setDraft(filters);
+  }, [visible, filters]);
 
-  function Section({ title, children }: { title: string; children: React.ReactNode }) {
-    return (
-      <View style={{ marginBottom: SPACING.lg }}>
-        <Text
-          style={{
-            color: theme.fgFaint,
-            fontSize: 11,
-            letterSpacing: 0.8,
-            marginBottom: SPACING.sm,
-          }}
-        >
-          {title.toUpperCase()}
-        </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>{children}</View>
-      </View>
-    );
-  }
+  const departmentById = useMemo(
+    () => new Map(dataset.teachers.map((teacher) => [teacher.id, teacher.department])),
+    [dataset.teachers],
+  );
+
+  const teacherOptions = useMemo(
+    () =>
+      options.teachers.map((teacher) => ({
+        id: teacher.id,
+        label: teacher.name,
+        sublabel: departmentById.get(teacher.id) ?? undefined,
+        badge: `${String(teacher.lectures)} lec`,
+      })),
+    [options.teachers, departmentById],
+  );
+
+  const subjectOptions = useMemo(
+    () =>
+      options.subjects.map((subject) => ({
+        id: subject.id,
+        label: `${subject.code} · ${subject.name}`,
+        color: subject.color,
+        badge: `${String(subject.lectures)} lec`,
+      })),
+    [options.subjects],
+  );
+
+  const matched = useMemo(
+    () => applyFilters(dataset, draft).stats.matchedLectures,
+    [dataset, draft],
+  );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: "#00000099", justifyContent: "flex-end" }}>
-        <View
-          style={{
-            backgroundColor: theme.bg,
-            borderTopLeftRadius: RADIUS.lg,
-            borderTopRightRadius: RADIUS.lg,
-            maxHeight: "88%",
-            paddingTop: SPACING.lg,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              paddingHorizontal: SPACING.lg,
-              paddingBottom: SPACING.md,
-            }}
-          >
-            <Text style={{ color: theme.fg, fontSize: 17, fontWeight: "700" }}>
-              Filters
-            </Text>
-            <Pressable accessibilityRole="button" onPress={onClose} hitSlop={12}>
-              <Text style={{ color: theme.fgMuted, fontSize: 15 }}>Close</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView style={{ paddingHorizontal: SPACING.lg }}>
-            <TextInput
-              value={draft.q}
-              onChangeText={(text) => {
-                setDraft({ ...draft, q: text.toLowerCase() });
-              }}
-              placeholder="Search teacher, subject, note"
-              placeholderTextColor={theme.fgFaint}
-              style={{
-                borderColor: theme.lineStrong,
-                borderWidth: StyleSheet.hairlineWidth,
-                borderRadius: RADIUS.md,
-                color: theme.fg,
-                paddingHorizontal: SPACING.md,
-                paddingVertical: 11,
-                marginBottom: SPACING.lg,
-                minHeight: 44,
+    <Sheet
+      visible={visible}
+      title="Filters"
+      subtitle="Narrow the timetable down"
+      onClose={onClose}
+      footer={
+        <View style={{ flexDirection: "row", gap: SPACING.md }}>
+          <View style={{ flex: 1 }}>
+            <Button
+              label="Clear"
+              onPress={() => {
+                setDraft(EMPTY_FILTERS);
+                onApply(EMPTY_FILTERS);
               }}
             />
-
-            <Section title="Teacher">
-              {options.teachers.map((teacher) => (
-                <Chip
-                  key={teacher.id}
-                  label={`${teacher.name} ${String(teacher.lectures)}`}
-                  active={draft.teacher.includes(teacher.id)}
-                  onPress={() => {
-                    setDraft({ ...draft, teacher: toggle(draft.teacher, teacher.id) });
-                  }}
-                />
-              ))}
-            </Section>
-
-            <Section title="Subject">
-              {options.subjects.map((subject) => (
-                <Chip
-                  key={subject.id}
-                  label={subject.code}
-                  active={draft.subject.includes(subject.id)}
-                  onPress={() => {
-                    setDraft({ ...draft, subject: toggle(draft.subject, subject.id) });
-                  }}
-                />
-              ))}
-            </Section>
-
-            <Section title="Section">
-              {options.sections.map((section) => (
-                <Chip
-                  key={section.id}
-                  label={section.name}
-                  active={draft.section.includes(section.id)}
-                  onPress={() => {
-                    setDraft({ ...draft, section: toggle(draft.section, section.id) });
-                  }}
-                />
-              ))}
-            </Section>
-
-            <Section title="Day">
-              {options.days.map((day) => (
-                <Chip
-                  key={day.id}
-                  label={day.short}
-                  active={draft.day.includes(day.id)}
-                  onPress={() => {
-                    setDraft({ ...draft, day: toggle(draft.day, day.id) });
-                  }}
-                />
-              ))}
-            </Section>
-
-            <Section title="Period">
-              {options.periods.map((period) => (
-                <Chip
-                  key={period.id}
-                  label={period.label}
-                  active={draft.period.includes(period.id)}
-                  onPress={() => {
-                    setDraft({ ...draft, period: toggle(draft.period, period.id) });
-                  }}
-                />
-              ))}
-            </Section>
-          </ScrollView>
-
-          <View
-            style={{
-              flexDirection: "row",
-              gap: SPACING.md,
-              padding: SPACING.lg,
-              borderTopColor: theme.line,
-              borderTopWidth: StyleSheet.hairlineWidth,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Button
-                label="Clear"
-                onPress={() => {
-                  const cleared: Filters = {
-                    teacher: [],
-                    subject: [],
-                    section: [],
-                    group: [],
-                    day: [],
-                    period: [],
-                    q: "",
-                  };
-                  setDraft(cleared);
-                  onApply(cleared);
-                }}
-              />
-            </View>
-            <View style={{ flex: 2 }}>
-              <Button
-                label="Apply"
-                variant="primary"
-                onPress={() => {
-                  onApply(draft);
-                  onClose();
-                }}
-              />
-            </View>
+          </View>
+          <View style={{ flex: 2 }}>
+            <Button
+              label={`Show ${String(matched)} lectures`}
+              variant="primary"
+              onPress={() => {
+                onApply(draft);
+                onClose();
+              }}
+            />
           </View>
         </View>
-      </View>
-    </Modal>
+      }
+    >
+      <ScrollView
+        style={{ paddingHorizontal: SPACING.lg }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: SPACING.sm,
+            backgroundColor: theme.bgSubtle,
+            borderColor: theme.line,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderRadius: RADIUS.md,
+            paddingHorizontal: SPACING.md,
+            marginBottom: SPACING.lg,
+          }}
+        >
+          <Ionicons name="search" size={16} color={theme.fgFaint} />
+          <TextInput
+            value={draft.q}
+            onChangeText={(text) => {
+              setDraft({ ...draft, q: text.toLowerCase() });
+            }}
+            placeholder="Search teacher, subject, note"
+            placeholderTextColor={theme.fgFaint}
+            style={{ flex: 1, color: theme.fg, minHeight: 44, fontSize: 14 }}
+          />
+        </View>
+
+        <View style={{ gap: SPACING.lg, marginBottom: SPACING.lg }}>
+          <SelectField
+            label="Teachers"
+            placeholder="All teachers"
+            options={teacherOptions}
+            selected={draft.teacher}
+            multi
+            onChange={(ids) => {
+              setDraft({ ...draft, teacher: ids });
+            }}
+          />
+          <SelectField
+            label="Subjects"
+            placeholder="All subjects"
+            options={subjectOptions}
+            selected={draft.subject}
+            multi
+            onChange={(ids) => {
+              setDraft({ ...draft, subject: ids });
+            }}
+          />
+        </View>
+
+        <FilterGroup title="Section">
+          {options.sections.map((section) => (
+            <Chip
+              key={section.id}
+              label={section.name}
+              active={draft.section.includes(section.id)}
+              onPress={() => {
+                setDraft({ ...draft, section: toggle(draft.section, section.id) });
+              }}
+            />
+          ))}
+        </FilterGroup>
+
+        <FilterGroup title="Day">
+          {options.days.map((day) => (
+            <Chip
+              key={day.id}
+              label={day.short}
+              active={draft.day.includes(day.id)}
+              onPress={() => {
+                setDraft({ ...draft, day: toggle(draft.day, day.id) });
+              }}
+            />
+          ))}
+        </FilterGroup>
+
+        <FilterGroup title="Period">
+          {options.periods.map((period) => (
+            <Chip
+              key={period.id}
+              label={period.label}
+              active={draft.period.includes(period.id)}
+              onPress={() => {
+                setDraft({ ...draft, period: toggle(draft.period, period.id) });
+              }}
+            />
+          ))}
+        </FilterGroup>
+      </ScrollView>
+    </Sheet>
   );
 }

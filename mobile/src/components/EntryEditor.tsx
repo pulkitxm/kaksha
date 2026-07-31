@@ -1,316 +1,410 @@
-import { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import type { ResolvedDataset, ResolvedEntry } from "@kaksha/core";
 
-import { deleteEntry, updateEntry } from "../lib/api";
+import { makeLocalEntryId } from "../lib/local";
+import { useStore } from "../lib/store";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
-import { Banner, Button, SubjectChip } from "./ui";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { SelectField } from "./Select";
+import { Sheet } from "./Sheet";
+import { useToast } from "./Toast";
+import { Button, Chip, IconButton } from "./ui";
+
+export type EditorTarget =
+  | { mode: "edit"; entry: ResolvedEntry }
+  | { mode: "create"; sectionId: string; periodId: number };
 
 type Props = {
-  entry: ResolvedEntry | null;
+  target: EditorTarget | null;
   dataset: ResolvedDataset;
   onClose: () => void;
-  onSaved: () => void;
+};
+
+type DraftAssignment = { subjectId: string; teacherId: string | null };
+
+type Draft = {
+  sectionId: string;
+  periodId: number;
+  dayIds: number[];
+  assignments: DraftAssignment[];
+  note: string;
 };
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 }
 
-export function EntryEditor({ entry, dataset, onClose, onSaved }: Props) {
+function draftFrom(target: EditorTarget): Draft {
+  if (target.mode === "edit") {
+    return {
+      sectionId: target.entry.sectionId,
+      periodId: target.entry.periodId,
+      dayIds: target.entry.dayIds,
+      assignments: target.entry.assignments.map((item) => ({
+        subjectId: item.subject.id,
+        teacherId: item.teacher?.id ?? null,
+      })),
+      note: target.entry.note ?? "",
+    };
+  }
+  return {
+    sectionId: target.sectionId,
+    periodId: target.periodId,
+    dayIds: [],
+    assignments: [{ subjectId: "", teacherId: null }],
+    note: "",
+  };
+}
+
+function Label({ text }: { text: string }) {
   const theme = useTheme();
-  const [sectionId, setSectionId] = useState(entry?.sectionId ?? "");
-  const [periodId, setPeriodId] = useState(entry?.periodId ?? 0);
-  const [dayIds, setDayIds] = useState<number[]>(entry?.dayIds ?? []);
-  const [assignments, setAssignments] = useState(
-    entry?.assignments.map((item) => ({
-      subjectId: item.subject.id,
-      teacherId: item.teacher?.id ?? null,
-    })) ?? [],
+  return (
+    <Text
+      style={{
+        color: theme.fgFaint,
+        fontSize: 11,
+        letterSpacing: 0.8,
+        marginBottom: SPACING.sm,
+      }}
+    >
+      {text.toUpperCase()}
+    </Text>
   );
+}
+
+const UNASSIGNED = "unassigned";
+
+export function EntryEditor({ target, dataset, onClose }: Props) {
+  const theme = useTheme();
+  const store = useStore();
+  const toast = useToast();
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [editingIndex, setEditingIndex] = useState(0);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-  if (!entry) return null;
+  useEffect(() => {
+    setDraft(target ? draftFrom(target) : null);
+    setOpen(target !== null);
+    setConfirmingDelete(false);
+  }, [target]);
 
-  const target = entry;
+  const subjectOptions = useMemo(
+    () =>
+      dataset.subjects.map((subject) => ({
+        id: subject.id,
+        label: `${subject.code} · ${subject.name}`,
+        color: subject.color,
+      })),
+    [dataset.subjects],
+  );
+
+  const teacherOptions = useMemo(
+    () => [
+      { id: UNASSIGNED, label: "Unassigned", sublabel: "No teacher yet" },
+      ...dataset.teachers.map((teacher) => ({
+        id: teacher.id,
+        label: teacher.name,
+        sublabel: teacher.department ?? undefined,
+      })),
+    ],
+    [dataset.teachers],
+  );
+
+  if (!target || !draft) return null;
+
+  const valid =
+    draft.sectionId.length > 0 &&
+    draft.dayIds.length > 0 &&
+    draft.assignments.length > 0 &&
+    draft.assignments.every((item) => item.subjectId.length > 0);
+
+  function update(partial: Partial<Draft>) {
+    setDraft((current) => (current ? { ...current, ...partial } : current));
+  }
+
+  function updateAssignment(index: number, partial: Partial<DraftAssignment>) {
+    setDraft((current) =>
+      current
+        ? {
+            ...current,
+            assignments: current.assignments.map((item, at) =>
+              at === index ? { ...item, ...partial } : item,
+            ),
+          }
+        : current,
+    );
+  }
 
   async function save() {
-    if (dayIds.length === 0) {
-      setError("Pick at least one day");
-      return;
-    }
+    if (!draft || !valid) return;
     setBusy(true);
-    setError(null);
     try {
-      await updateEntry(target.id, { sectionId, periodId, dayIds, assignments });
-      onSaved();
-      onClose();
+      const payload = {
+        sectionId: draft.sectionId,
+        periodId: draft.periodId,
+        dayIds: draft.dayIds,
+        assignments: draft.assignments,
+        note: draft.note.trim().length > 0 ? draft.note.trim() : null,
+      };
+      const result =
+        target?.mode === "edit"
+          ? await store.mutate({
+              kind: "updateEntry",
+              id: target.entry.id,
+              patch: payload,
+            })
+          : await store.mutate({
+              kind: "createEntry",
+              localId: makeLocalEntryId(store.classId),
+              input: { classId: store.classId, ...payload },
+            });
+      toast(
+        result === "synced" ? "Lecture saved" : "Saved offline, syncs later",
+        "success",
+      );
+      setOpen(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not save");
+      toast(cause instanceof Error ? cause.message : "Could not save", "error");
     } finally {
       setBusy(false);
     }
   }
 
   async function remove() {
+    if (target?.mode !== "edit") return;
     setBusy(true);
-    setError(null);
     try {
-      await deleteEntry(target.id);
-      onSaved();
-      onClose();
+      const result = await store.mutate({ kind: "deleteEntry", id: target.entry.id });
+      toast(
+        result === "synced" ? "Lecture deleted" : "Deleted offline, syncs later",
+        "success",
+      );
+      setConfirmingDelete(false);
+      setOpen(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not delete");
+      toast(cause instanceof Error ? cause.message : "Could not delete", "error");
+      setConfirmingDelete(false);
     } finally {
       setBusy(false);
     }
   }
 
-  function Row({ title, children }: { title: string; children: React.ReactNode }) {
-    return (
-      <View style={{ marginBottom: SPACING.lg }}>
-        <Text
-          style={{
-            color: theme.fgFaint,
-            fontSize: 11,
-            letterSpacing: 0.8,
-            marginBottom: SPACING.sm,
-          }}
-        >
-          {title.toUpperCase()}
-        </Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>{children}</View>
-      </View>
-    );
-  }
-
-  function Chip({
-    label,
-    active,
-    onPress,
-  }: {
-    label: string;
-    active: boolean;
-    onPress: () => void;
-  }) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ selected: active }}
-        onPress={onPress}
-        style={{
-          backgroundColor: active ? theme.accent : theme.panel,
-          borderColor: active ? theme.accent : theme.lineStrong,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderRadius: RADIUS.pill,
-          paddingHorizontal: SPACING.md,
-          paddingVertical: 8,
-          marginRight: SPACING.sm,
-          marginBottom: SPACING.sm,
-          minHeight: 36,
-          justifyContent: "center",
-        }}
-      >
-        <Text style={{ color: active ? theme.accentText : theme.fg, fontSize: 13 }}>
-          {label}
-        </Text>
-      </Pressable>
-    );
-  }
-
-  const current = assignments[editingIndex];
-
   return (
-    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: "#00000099", justifyContent: "flex-end" }}>
-        <View
-          style={{
-            backgroundColor: theme.bg,
-            borderTopLeftRadius: RADIUS.lg,
-            borderTopRightRadius: RADIUS.lg,
-            maxHeight: "92%",
-            paddingTop: SPACING.lg,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingHorizontal: SPACING.lg,
-              paddingBottom: SPACING.md,
-            }}
-          >
-            <Text style={{ color: theme.fg, fontSize: 17, fontWeight: "700" }}>
-              Edit lecture
-            </Text>
-            <Pressable accessibilityRole="button" onPress={onClose} hitSlop={12}>
-              <Text style={{ color: theme.fgMuted, fontSize: 15 }}>Close</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView style={{ paddingHorizontal: SPACING.lg }}>
-            {error ? (
-              <View style={{ marginBottom: SPACING.md }}>
-                <Banner text={error} tone="error" />
+    <>
+      <Sheet
+        visible={open}
+        title={target.mode === "edit" ? "Edit lecture" : "New lecture"}
+        subtitle={
+          target.mode === "edit"
+            ? "Changes apply instantly and sync to the server"
+            : "Fill in the slot to add it to the timetable"
+        }
+        onClose={() => {
+          setOpen(false);
+        }}
+        onDismissed={onClose}
+        footer={
+          <View style={{ flexDirection: "row", gap: SPACING.md }}>
+            {target.mode === "edit" ? (
+              <View style={{ flex: 1 }}>
+                <Button
+                  label="Delete"
+                  variant="danger"
+                  icon="trash-outline"
+                  disabled={busy}
+                  onPress={() => {
+                    setConfirmingDelete(true);
+                  }}
+                />
               </View>
             ) : null}
-
-            <Row title="Section">
-              {dataset.sections.map((section) => (
-                <Chip
-                  key={section.id}
-                  label={section.name}
-                  active={section.id === sectionId}
-                  onPress={() => {
-                    setSectionId(section.id);
-                  }}
-                />
-              ))}
-            </Row>
-
-            <Row title="Period">
-              {dataset.periods.map((period) => (
-                <Chip
-                  key={period.id}
-                  label={period.label}
-                  active={period.id === periodId}
-                  onPress={() => {
-                    setPeriodId(period.id);
-                  }}
-                />
-              ))}
-            </Row>
-
-            <Row title="Days">
-              {dataset.days.map((day) => (
-                <Chip
-                  key={day.id}
-                  label={day.short}
-                  active={dayIds.includes(day.id)}
-                  onPress={() => {
-                    setDayIds(toggle(dayIds, day.id));
-                  }}
-                />
-              ))}
-            </Row>
-
-            {assignments.length > 1 ? (
-              <Row title="Editing slot">
-                {assignments.map((item, index) => {
-                  const subject = dataset.subjects.find((s) => s.id === item.subjectId);
-                  return (
-                    <Chip
-                      key={`${item.subjectId}-${String(index)}`}
-                      label={subject?.code ?? item.subjectId}
-                      active={index === editingIndex}
-                      onPress={() => {
-                        setEditingIndex(index);
-                      }}
-                    />
-                  );
-                })}
-              </Row>
-            ) : null}
-
-            <Row title="Subject">
-              {dataset.subjects.map((subject) => (
-                <Chip
-                  key={subject.id}
-                  label={subject.code}
-                  active={current?.subjectId === subject.id}
-                  onPress={() => {
-                    setAssignments(
-                      assignments.map((item, index) =>
-                        index === editingIndex
-                          ? { ...item, subjectId: subject.id }
-                          : item,
-                      ),
-                    );
-                  }}
-                />
-              ))}
-            </Row>
-
-            <Row title="Teacher">
-              <Chip
-                label="Unassigned"
-                active={current?.teacherId === null}
-                onPress={() => {
-                  setAssignments(
-                    assignments.map((item, index) =>
-                      index === editingIndex ? { ...item, teacherId: null } : item,
-                    ),
-                  );
-                }}
-              />
-              {dataset.teachers.map((teacher) => (
-                <Chip
-                  key={teacher.id}
-                  label={teacher.name}
-                  active={current?.teacherId === teacher.id}
-                  onPress={() => {
-                    setAssignments(
-                      assignments.map((item, index) =>
-                        index === editingIndex
-                          ? { ...item, teacherId: teacher.id }
-                          : item,
-                      ),
-                    );
-                  }}
-                />
-              ))}
-            </Row>
-
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.xs }}>
-              {assignments.map((item, index) => {
-                const subject = dataset.subjects.find((s) => s.id === item.subjectId);
-                return (
-                  <SubjectChip
-                    key={`preview-${String(index)}`}
-                    code={subject?.code ?? item.subjectId}
-                    color={subject?.color ?? "slate"}
-                    theme={theme}
-                  />
-                );
-              })}
-            </View>
-          </ScrollView>
-
-          <View
-            style={{
-              flexDirection: "row",
-              gap: SPACING.md,
-              padding: SPACING.lg,
-              borderTopColor: theme.line,
-              borderTopWidth: StyleSheet.hairlineWidth,
-            }}
-          >
-            <View style={{ flex: 1 }}>
-              <Button
-                label="Delete"
-                variant="danger"
-                disabled={busy}
-                onPress={() => {
-                  void remove();
-                }}
-              />
-            </View>
             <View style={{ flex: 2 }}>
               <Button
-                label={busy ? "Saving" : "Save"}
+                label={target.mode === "edit" ? "Save changes" : "Add lecture"}
                 variant="primary"
-                disabled={busy}
+                busy={busy}
+                disabled={!valid}
                 onPress={() => {
                   void save();
                 }}
               />
             </View>
           </View>
-        </View>
-      </View>
-    </Modal>
+        }
+      >
+        <ScrollView
+          style={{ paddingHorizontal: SPACING.lg }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={{ marginBottom: SPACING.lg }}>
+            <Label text="Section" />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+              {dataset.sections.map((section) => (
+                <Chip
+                  key={section.id}
+                  label={section.name}
+                  active={section.id === draft.sectionId}
+                  onPress={() => {
+                    update({ sectionId: section.id });
+                  }}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={{ marginBottom: SPACING.lg }}>
+            <Label text="Period" />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+              {dataset.periods.map((period) => (
+                <Chip
+                  key={period.id}
+                  label={period.label}
+                  active={period.id === draft.periodId}
+                  onPress={() => {
+                    update({ periodId: period.id });
+                  }}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={{ marginBottom: SPACING.lg }}>
+            <Label text="Days" />
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+              {dataset.days.map((day) => (
+                <Chip
+                  key={day.id}
+                  label={day.short}
+                  active={draft.dayIds.includes(day.id)}
+                  onPress={() => {
+                    update({ dayIds: toggle(draft.dayIds, day.id) });
+                  }}
+                />
+              ))}
+            </View>
+          </View>
+
+          <Label text="Subjects and teachers" />
+          {draft.assignments.map((assignment, index) => (
+            <Animated.View
+              key={index}
+              entering={FadeIn.duration(180)}
+              exiting={FadeOut.duration(140)}
+              layout={LinearTransition.springify().damping(22).stiffness(300)}
+              style={{
+                backgroundColor: theme.bgSubtle,
+                borderColor: theme.line,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderRadius: RADIUS.lg,
+                padding: SPACING.md,
+                marginBottom: SPACING.sm,
+                gap: SPACING.md,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Text style={{ color: theme.fgMuted, fontSize: 12, fontWeight: "600" }}>
+                  Slot {String(index + 1)}
+                </Text>
+                {draft.assignments.length > 1 ? (
+                  <IconButton
+                    icon="close"
+                    label={`Remove slot ${String(index + 1)}`}
+                    size={15}
+                    onPress={() => {
+                      update({
+                        assignments: draft.assignments.filter((_, at) => at !== index),
+                      });
+                    }}
+                  />
+                ) : null}
+              </View>
+              <SelectField
+                label="Subject"
+                placeholder="Pick a subject"
+                options={subjectOptions}
+                selected={assignment.subjectId ? [assignment.subjectId] : []}
+                onChange={(ids) => {
+                  updateAssignment(index, { subjectId: ids[0] ?? "" });
+                }}
+              />
+              <SelectField
+                label="Teacher"
+                placeholder="Pick a teacher"
+                options={teacherOptions}
+                selected={[assignment.teacherId ?? UNASSIGNED]}
+                onChange={(ids) => {
+                  const id = ids[0];
+                  updateAssignment(index, {
+                    teacherId: !id || id === UNASSIGNED ? null : id,
+                  });
+                }}
+              />
+            </Animated.View>
+          ))}
+
+          {draft.assignments.length < 6 ? (
+            <View style={{ marginBottom: SPACING.lg }}>
+              <Button
+                label="Add another subject"
+                icon="add"
+                onPress={() => {
+                  update({
+                    assignments: [
+                      ...draft.assignments,
+                      { subjectId: "", teacherId: null },
+                    ],
+                  });
+                }}
+              />
+            </View>
+          ) : null}
+
+          <View style={{ marginBottom: SPACING.xl }}>
+            <Label text="Note" />
+            <TextInput
+              value={draft.note}
+              onChangeText={(text) => {
+                update({ note: text });
+              }}
+              placeholder="Optional note for this slot"
+              placeholderTextColor={theme.fgFaint}
+              maxLength={200}
+              style={{
+                borderColor: theme.lineStrong,
+                borderWidth: StyleSheet.hairlineWidth,
+                borderRadius: RADIUS.md,
+                color: theme.fg,
+                paddingHorizontal: SPACING.md,
+                minHeight: 44,
+              }}
+            />
+          </View>
+        </ScrollView>
+      </Sheet>
+
+      <ConfirmDialog
+        visible={confirmingDelete}
+        title="Delete this lecture?"
+        message="It disappears from every day it is scheduled on. This cannot be undone."
+        confirmLabel="Delete"
+        destructive
+        busy={busy}
+        onConfirm={() => {
+          void remove();
+        }}
+        onCancel={() => {
+          setConfirmingDelete(false);
+        }}
+      />
+    </>
   );
 }
