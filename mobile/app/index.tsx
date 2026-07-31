@@ -12,8 +12,6 @@ import { ShareView } from "../src/screens/ShareView";
 import { TeachersView } from "../src/screens/TeachersView";
 import { Banner, Button, StatTile } from "../src/components/ui";
 import { Header } from "../src/components/Header";
-import { UpdateCard } from "../src/components/UpdateCard";
-import { useAppUpdate } from "../src/lib/update";
 import { useLayout } from "../src/lib/layout";
 import { useStore } from "../src/lib/store";
 import { SPACING, useTheme } from "../src/lib/theme";
@@ -23,7 +21,6 @@ export default function Home() {
   const theme = useTheme();
   const layout = useLayout();
   const store = useStore();
-  const appUpdate = useAppUpdate();
   const [view, setView] = useState<ViewKey>("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sectionsOpen, setSectionsOpen] = useState(false);
@@ -75,7 +72,6 @@ export default function Home() {
       contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg }}
       showsVerticalScrollIndicator={false}
     >
-      <UpdateCard state={appUpdate} />
       <Animated.View
         entering={FadeIn.duration(240)}
         style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}
@@ -131,7 +127,6 @@ export default function Home() {
     >
       <Header
         dataset={dataset}
-        appUpdate={appUpdate}
         activeFilterCount={activeFilterCount}
         onOpenFilters={() => {
           setFiltersOpen(true);

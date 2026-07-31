@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -13,7 +14,6 @@ import type { ResolvedDataset } from "@kaksha/core";
 
 import { useStore } from "../lib/store";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
-import { type AppUpdateController } from "../lib/update";
 import { SelectSheet } from "./Select";
 import { useToast } from "./Toast";
 import { IconButton, PressableScale } from "./ui";
@@ -91,73 +91,19 @@ function ReloadButton() {
   );
 }
 
-function UpdateButton({ state }: { state: AppUpdateController }) {
-  const theme = useTheme();
-  const toast = useToast();
-
-  return (
-    <View>
-      <PressableScale
-        label="Check for updates"
-        disabled={state.checking}
-        pressedScale={0.88}
-        onPress={() => {
-          void state.check().then((outcome) => {
-            if (outcome === "update") toast("A new version is available", "info");
-            if (outcome === "current") toast("You are on the latest version", "success");
-            if (outcome === "failed") toast("Could not check for updates", "error");
-          });
-        }}
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: RADIUS.pill,
-          backgroundColor: theme.bgSubtle,
-          borderColor: theme.line,
-          borderWidth: StyleSheet.hairlineWidth,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {state.checking ? (
-          <ActivityIndicator size="small" color={theme.fgMuted} />
-        ) : (
-          <Ionicons name="cloud-download-outline" size={19} color={theme.fgMuted} />
-        )}
-      </PressableScale>
-      {state.update ? (
-        <View
-          style={{
-            position: "absolute",
-            top: -1,
-            right: -1,
-            width: 10,
-            height: 10,
-            borderRadius: RADIUS.pill,
-            backgroundColor: theme.accent,
-            borderColor: theme.bg,
-            borderWidth: 1.5,
-          }}
-        />
-      ) : null}
-    </View>
-  );
-}
-
 export function Header({
   dataset,
   activeFilterCount,
   onOpenFilters,
   onOpenSections,
-  appUpdate,
 }: {
   dataset: ResolvedDataset;
   activeFilterCount: number;
   onOpenFilters: () => void;
   onOpenSections: () => void;
-  appUpdate: AppUpdateController;
 }) {
   const theme = useTheme();
+  const router = useRouter();
   const { classId, setClassId, sync } = useStore();
   const [classPickerOpen, setClassPickerOpen] = useState(false);
 
@@ -245,9 +191,15 @@ export function Header({
 
       <IconButton icon="albums-outline" label="Sections" onPress={onOpenSections} />
 
-      <UpdateButton state={appUpdate} />
-
       <ReloadButton />
+
+      <IconButton
+        icon="settings-outline"
+        label="Settings"
+        onPress={() => {
+          router.push("/settings");
+        }}
+      />
 
       <SelectSheet
         visible={classPickerOpen}
