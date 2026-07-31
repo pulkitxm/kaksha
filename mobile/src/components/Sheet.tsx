@@ -7,7 +7,11 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
@@ -105,7 +109,7 @@ export function Sheet({
       animationType="none"
       onRequestClose={onClose}
     >
-      <View style={{ flex: 1, justifyContent: "flex-end" }}>
+      <GestureHandlerRootView style={{ flex: 1, justifyContent: "flex-end" }}>
         <Animated.View
           style={[
             StyleSheet.absoluteFill,
@@ -193,7 +197,7 @@ export function Sheet({
             <View style={{ height: insets.bottom + SPACING.md }} />
           )}
         </Animated.View>
-      </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
