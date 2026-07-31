@@ -10,7 +10,7 @@
       "project": ["src/**/*.ts"]
     },
     "server": {
-      "entry": ["src/index.ts", "src/server.ts", "scripts/seed.ts", "drizzle.config.ts"],
+      "entry": ["src/index.ts", "src/server.ts"],
       "project": ["src/**/*.ts", "scripts/**/*.ts"]
     }
   },

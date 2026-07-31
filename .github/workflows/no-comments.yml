@@ -18,8 +18,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version-file: .nvmrc
+          bun-version-file: .bun-version
       - name: Check for disallowed code comments
-        run: node scripts/check-comments.mjs
+        run: bun run scripts/check-comments.mjs

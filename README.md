@@ -5,20 +5,20 @@ and validated with Zod at every boundary, then served through the app's own REST
 
 ```bash
 cp .env.example .env.local   # set DATABASE_URL
-npm run db:migrate           # create the schema
-npm run db:seed              # load data/ into Postgres
-bun dev                      # or npm run dev
+bun run db:migrate           # create the schema
+bun run db:seed              # load data/ into Postgres
+bun run dev:server                      # or bun run dev
 ```
 
 ## Database
 
 | Script                | Purpose                                      |
 | --------------------- | -------------------------------------------- |
-| `npm run db:generate` | Write a migration from `src/db/schema.ts`    |
-| `npm run db:migrate`  | Apply pending migrations                     |
-| `npm run db:push`     | Push the schema without a migration file     |
-| `npm run db:seed`     | Validate `data/` and reload it into Postgres |
-| `npm run db:studio`   | Browse the data in Drizzle Studio            |
+| `bun run db:generate` | Write a migration from `src/db/schema.ts`    |
+| `bun run db:migrate`  | Apply pending migrations                     |
+| `bun run db:push`     | Push the schema without a migration file     |
+| `bun run db:seed`     | Validate `data/` and reload it into Postgres |
+| `bun run db:studio`   | Browse the data in Drizzle Studio            |
 
 Tables are fully normalised: `subjects`, `teachers`, `classes`, `periods`, `class_subjects`,
 `sections`, `section_electives`, `entries`, `entry_days` and `entry_assignments`. Days and
@@ -98,7 +98,7 @@ Classes 7 to 12 exist with empty entry files, ready to fill in.
 1. Set `active: true` and list `periods` and `subjectIds` in `data/classes.json`.
 2. Add its sections to `data/sections.json` with the matching `classId`.
 3. Fill `data/entries/<classId>.json`.
-4. Run `npm run db:seed`.
+4. Run `bun run db:seed`.
 
 ## API
 

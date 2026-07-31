@@ -18,12 +18,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
       - name: Build workspaces
-        run: npm run build
+        run: bun run build
       - name: Check for unused files, exports and dependencies
-        run: npm run dead-code
+        run: bun run dead-code

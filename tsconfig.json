@@ -9,7 +9,7 @@
     "allowJs": true,
     "checkJs": false,
     "noEmit": true,
-    "types": ["node"]
+    "types": ["bun"]
   },
-  "include": ["vitest.config.ts", "eslint.config.mjs", "scripts/**/*.mjs", "api/**/*.ts"]
+  "include": ["eslint.config.mjs", "scripts/**/*.mjs", "api/**/*.ts"]
 }
