@@ -56,7 +56,11 @@ function EntryBlock({
         </div>
       </div>
 
-      <div className={`truncate text-[11px] leading-snug text-fg-muted ${compact ? "" : "mt-0.5"}`}>
+      <div
+        className={`text-[11px] leading-snug text-balance break-words text-fg-muted ${
+          compact ? "" : "mt-0.5"
+        }`}
+      >
         {entry.assignments.map((a) => a.teacher?.name ?? "Unassigned").join(" / ")}
       </div>
     </div>
@@ -96,12 +100,18 @@ export function TimetableGrid({
   return (
     <div className="fade-in overflow-hidden rounded-xl border border-line bg-panel">
       <div className="scrollbar-thin overflow-x-auto">
-        <table className="w-full min-w-[1120px] border-collapse">
+        <table className="w-full min-w-[1400px] table-fixed border-collapse">
+          <colgroup>
+            <col className="w-[112px]" />
+            {periods.map((period) => (
+              <col key={period.id} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="bg-bg-subtle">
               <th
                 scope="col"
-                className="sticky left-0 z-20 w-[104px] min-w-[104px] border-b border-r border-line bg-bg-subtle px-3 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-fg-faint"
+                className="sticky left-0 z-20 border-b border-r border-line bg-bg-subtle px-3 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-fg-faint"
               >
                 Section
               </th>
