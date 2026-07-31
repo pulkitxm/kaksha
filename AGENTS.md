@@ -12,25 +12,28 @@ A school timetable system. Three workspaces:
 
 Every one of these has a workflow in `.github/workflows`. Run them locally before pushing.
 
-- **No code comments.** Names and structure carry the meaning. Only functional directives are allowed: `eslint-*`, `@ts-*`, `biome-ignore`, `prettier-ignore`, `/*! license */`. Checked by `npm run check:comments`.
+- **No code comments.** Names and structure carry the meaning. Only functional directives are allowed: `eslint-*`, `@ts-*`, `biome-ignore`, `prettier-ignore`, `/*! license */`. Checked by `bun run check:comments`.
 - **No em dashes** anywhere in the repo. Use a comma, colon, or a separate sentence.
 - **No leftovers**: no `console.log` in source, no `debugger`, no `.only` tests, no conflict markers, no `TODO` or `FIXME`.
 - **Types are strict.** `strict`, `noUncheckedIndexedAccess`, `noUnusedLocals`, `noUnusedParameters`, `verbatimModuleSyntax`. No `any`, no non-null assertions outside tests.
 - **Lint is type-aware.** `typescript-eslint` strict plus stylistic, with type information.
 - **No dead code.** Knip fails on unused files, exports and dependencies. Do not export something before it has a caller.
-- **Tests must pass** and cover the domain logic in `core`.
+- **Tests must pass** and cover the domain logic in `core`. They run on `bun test`.
 
 ## Local commands
 
 ```bash
-npm run typecheck      # every workspace
-npm run lint           # eslint, type-aware
-npm run format         # prettier check
-npm run test           # vitest
-npm run check:comments # comment policy
-npm run dead-code      # knip
-npm run build          # core then server
+bun run typecheck      # every workspace
+bun run lint           # eslint, type-aware
+bun run format         # prettier check
+bun test               # bun's test runner
+bun run check:comments # comment policy
+bun run dead-code      # knip
+bun run build          # core then server
 ```
+
+Bun is the only package manager and runtime. There is no npm lockfile and no
+Node version file; `.bun-version` pins the toolchain for CI.
 
 ## Conventions
 

@@ -21,10 +21,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
       - name: Audit runtime dependencies for high and critical vulnerabilities
-        run: npm audit --omit=dev --audit-level=high
+        run: bun audit --audit-level=high --prod

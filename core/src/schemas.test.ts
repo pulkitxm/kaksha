@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 
 import { mergeSectionsSchema, updateEntrySchema } from "./mutations.js";
 import { classParamSchema, entrySchema, filtersSchema } from "./schemas.js";

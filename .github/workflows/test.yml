@@ -18,13 +18,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
       - name: Unit tests
-        run: npm run test
+        run: bun test
 
   integration:
     runs-on: ubuntu-latest
@@ -48,14 +47,13 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
       - name: Build core
-        run: npm run build -w @kaksha/core
+        run: bun run --filter @kaksha/core build
       - name: Apply migrations
-        run: npm run db:migrate
+        run: bun run db:migrate
       - name: Seed and verify referential integrity
-        run: npm run db:seed
+        run: bun run db:seed

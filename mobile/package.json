@@ -4,11 +4,11 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "typecheck": "tsc --noEmit",
-    "prebuild": "expo prebuild --platform android --clean",
-    "bundle:android": "expo export --platform android --output-dir .expo/export"
+    "start": "bunx expo start",
+    "android": "bunx expo start --android",
+    "typecheck": "bunx tsc --noEmit",
+    "prebuild": "bunx expo prebuild --platform android --clean",
+    "bundle:android": "bunx expo export --platform android --output-dir .expo/export"
   },
   "dependencies": {
     "@babel/runtime": "^8.0.0",

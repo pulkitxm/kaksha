@@ -18,14 +18,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
+          bun-version-file: .bun-version
+      - run: bun install --frozen-lockfile
       - name: Build workspace types
-        run: npm run build
+        run: bun run build
       - name: ESLint
-        run: npm run lint
+        run: bun run lint
       - name: Prettier
-        run: npm run format
+        run: bun run format
