@@ -1,0 +1,7 @@
+node_modules
+dist
+.expo
+core/dist
+server/dist
+server/drizzle
+package-lock.json

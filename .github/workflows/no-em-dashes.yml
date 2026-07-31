@@ -1,0 +1,28 @@
+name: No em dashes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: no-em-dashes-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  no-em-dashes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check for em dashes (U+2014)
+        run: |
+          dash=$(printf '\xe2\x80\x94')
+          if git grep -nIF "$dash" -- . ':!package-lock.json'; then
+            echo "::error::Em dashes (U+2014) are not allowed. Use a comma, colon or separate sentence."
+            exit 1
+          fi
+          echo "No em dashes found."

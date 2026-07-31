@@ -12,13 +12,13 @@ bun dev                      # or npm run dev
 
 ## Database
 
-| Script | Purpose |
-| --- | --- |
-| `npm run db:generate` | Write a migration from `src/db/schema.ts` |
-| `npm run db:migrate` | Apply pending migrations |
-| `npm run db:push` | Push the schema without a migration file |
-| `npm run db:seed` | Validate `data/` and reload it into Postgres |
-| `npm run db:studio` | Browse the data in Drizzle Studio |
+| Script                | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| `npm run db:generate` | Write a migration from `src/db/schema.ts`    |
+| `npm run db:migrate`  | Apply pending migrations                     |
+| `npm run db:push`     | Push the schema without a migration file     |
+| `npm run db:seed`     | Validate `data/` and reload it into Postgres |
+| `npm run db:studio`   | Browse the data in Drizzle Studio            |
 
 Tables are fully normalised: `subjects`, `teachers`, `classes`, `periods`, `class_subjects`,
 `sections`, `section_electives`, `entries`, `entry_days` and `entry_assignments`. Days and
@@ -34,15 +34,15 @@ dropped individually instead of failing the request.
 The JSON in `data/` is the seed source, not the runtime store. Rows reference each other by id,
 so a teacher or subject is renamed in exactly one place.
 
-| File | Row | Notes |
-| --- | --- | --- |
-| `data/school.json` | school | Title and session shown in the header |
-| `data/days.json` | day | `id` is the weekday code used inside cells (`1` = Monday) |
-| `data/subjects.json` | subject | Global catalogue, shared across classes |
-| `data/teachers.json` | teacher | Global catalogue, shared across classes |
-| `data/classes.json` | class | Owns its own `periods` and `subjectIds` |
-| `data/sections.json` | section | Scoped to a class via `classId` |
-| `data/entries/<classId>.json` | entry | One file per class |
+| File                          | Row     | Notes                                                     |
+| ----------------------------- | ------- | --------------------------------------------------------- |
+| `data/school.json`            | school  | Title and session shown in the header                     |
+| `data/days.json`              | day     | `id` is the weekday code used inside cells (`1` = Monday) |
+| `data/subjects.json`          | subject | Global catalogue, shared across classes                   |
+| `data/teachers.json`          | teacher | Global catalogue, shared across classes                   |
+| `data/classes.json`           | class   | Owns its own `periods` and `subjectIds`                   |
+| `data/sections.json`          | section | Scoped to a class via `classId`                           |
+| `data/entries/<classId>.json` | entry   | One file per class                                        |
 
 ### Ids
 
@@ -104,13 +104,13 @@ Classes 7 to 12 exist with empty entry files, ready to fill in.
 
 Every route queries Postgres per request; nothing is cached between requests.
 
-| Route | Purpose |
-| --- | --- |
-| `GET /api/timetable` | Joined timetable, stats and teacher load |
-| `GET /api/classes` | Classes with section, period and entry counts |
-| `GET /api/teachers` | Teachers with weekly load |
-| `GET /api/subjects` | Subjects with weekly lecture counts |
-| `GET /api/health` | Dangling ids and other integrity issues |
+| Route                | Purpose                                       |
+| -------------------- | --------------------------------------------- |
+| `GET /api/timetable` | Joined timetable, stats and teacher load      |
+| `GET /api/classes`   | Classes with section, period and entry counts |
+| `GET /api/teachers`  | Teachers with weekly load                     |
+| `GET /api/subjects`  | Subjects with weekly lecture counts           |
+| `GET /api/health`    | Dangling ids and other integrity issues       |
 
 `/api/timetable` accepts `class`, plus repeatable or comma-joined `teacher`, `subject`,
 `section`, `day`, `period`, `group` and a free-text `q`. `/api/share` renders the current

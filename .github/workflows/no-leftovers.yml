@@ -1,0 +1,55 @@
+name: No leftovers
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: no-leftovers-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  no-leftovers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: No console.log in source
+        run: |
+          if git grep -nE "console\.log\(" -- "core/src" "server/src" "mobile/src" "mobile/app"; then
+            echo "::error::console.log found in source. Remove it; scripts and tests are exempt."
+            exit 1
+          fi
+          echo "No console.log in source."
+      - name: No debugger statements
+        run: |
+          if git grep -nE "^[[:space:]]*debugger" -- "*.ts" "*.tsx"; then
+            echo "::error::debugger statement found. Remove it before merging."
+            exit 1
+          fi
+          echo "No debugger statements."
+      - name: No focused tests
+        run: |
+          if git grep -nE "\b(test|it|describe)\.only\(" -- "*.ts" "*.tsx"; then
+            echo "::error::.only found. It silently skips the rest of the file. Remove it."
+            exit 1
+          fi
+          echo "No focused tests."
+      - name: No merge conflict markers
+        run: |
+          if git grep -nE "^(<<<<<<< |>>>>>>> )" -- . ':!package-lock.json'; then
+            echo "::error::Merge conflict markers found. Resolve and remove them."
+            exit 1
+          fi
+          echo "No conflict markers."
+      - name: No TODO or FIXME left behind
+        run: |
+          if git grep -nE "(TODO|FIXME|XXX):" -- "core/src" "server/src" "mobile/src" "mobile/app"; then
+            echo "::error::TODO or FIXME found in source. Resolve it or track it in an issue."
+            exit 1
+          fi
+          echo "No TODO or FIXME markers."

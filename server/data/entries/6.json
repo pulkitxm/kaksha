@@ -1,0 +1,1702 @@
+[
+  {
+    "id": "ent_6_a_0_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 0,
+    "dayIds": [1, 2],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_renu-yadav"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_0_2",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 0,
+    "dayIds": [3, 4],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_anoop-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_0_3",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 0,
+    "dayIds": [5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_roshni"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_1_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 1,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_renu-yadav"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_2_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 2,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_mukesh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_2_2",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 2,
+    "dayIds": [2],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_tejinder"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_2_3",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 2,
+    "dayIds": [3],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_tejinder"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_2_4",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 2,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_mukesh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_2_5",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 2,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_himanshu"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_2_6",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 2,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_manisha-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_3_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 3,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_tejinder"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_3_2",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 3,
+    "dayIds": [2],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_seema-sh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_3_3",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 3,
+    "dayIds": [3],
+    "assignments": [
+      {
+        "subjectId": "sub_gd",
+        "teacherId": "tch_jamuna"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_3_4",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 3,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_ekta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_3_5",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 3,
+    "dayIds": [5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_ca",
+        "teacherId": "tch_roshni"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_4_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 4,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_ca",
+        "teacherId": "tch_roshni"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_4_2",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 4,
+    "dayIds": [2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_skt",
+        "teacherId": "tch_vandana"
+      },
+      {
+        "subjectId": "sub_pnb",
+        "teacherId": "tch_jaswinder"
+      },
+      {
+        "subjectId": "sub_urdu",
+        "teacherId": "tch_saba"
+      }
+    ],
+    "note": "Elective split"
+  },
+  {
+    "id": "ent_6_a_5_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 5,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_anoop-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_6_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 6,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_sst",
+        "teacherId": "tch_tejinder"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_7_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 7,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_science",
+        "teacherId": "tch_asha-arya"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_a_8_1",
+    "classId": "6",
+    "sectionId": "sec_6_a",
+    "periodId": 8,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_roshni"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_0_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 0,
+    "dayIds": [1, 2],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_ekta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_0_2",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 0,
+    "dayIds": [3, 4],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_surjeet"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_0_3",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 0,
+    "dayIds": [5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_seema-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_1_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 1,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_ekta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_2_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 2,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_science",
+        "teacherId": "tch_charul"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_3_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 3,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_surjeet"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_4_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 4,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_manisha-meena"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_4_2",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 4,
+    "dayIds": [2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_skt",
+        "teacherId": "tch_vandana"
+      },
+      {
+        "subjectId": "sub_pnb",
+        "teacherId": "tch_jaswinder"
+      }
+    ],
+    "note": "Elective split"
+  },
+  {
+    "id": "ent_6_b_5_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 5,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_seema-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_6_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 6,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_gd",
+        "teacherId": "tch_mukesh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_6_2",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 6,
+    "dayIds": [2],
+    "assignments": [
+      {
+        "subjectId": "sub_lib",
+        "teacherId": "tch_vineeta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_6_3",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 6,
+    "dayIds": [3],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_seema-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_6_4",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 6,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_sunita-c"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_6_5",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 6,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_gd",
+        "teacherId": "tch_himanshu"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_6_6",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 6,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_gulshama"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_7_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 7,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_sst",
+        "teacherId": "tch_gulshama"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_8_1",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 8,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_ekta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_8_2",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 8,
+    "dayIds": [2, 3, 4],
+    "assignments": [
+      {
+        "subjectId": "sub_h-science",
+        "teacherId": "tch_r-j-kaur"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_8_3",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 8,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_ekta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_b_8_4",
+    "classId": "6",
+    "sectionId": "sec_6_b",
+    "periodId": 8,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_seema-sh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_0_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 0,
+    "dayIds": [1, 2],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_manisha-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_0_2",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 0,
+    "dayIds": [3, 4],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_sonia-saldhi"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_0_3",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 0,
+    "dayIds": [5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_deepika-h"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_1_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 1,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_sonia-saldhi"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_2_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 2,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_deepika-h"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_3_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 3,
+    "dayIds": [1, 2, 3],
+    "assignments": [
+      {
+        "subjectId": "sub_h-science",
+        "teacherId": "tch_ekta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_3_2",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 3,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_himanshu"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_3_3",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 3,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_gulshama"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_3_4",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 3,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_lib",
+        "teacherId": "tch_vineeta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_4_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 4,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_shivani"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_4_2",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 4,
+    "dayIds": [2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_skt",
+        "teacherId": "tch_anuradha"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_5_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 5,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_sst",
+        "teacherId": "tch_jamuna"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_6_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 6,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_manisha-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_7_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 7,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_science",
+        "teacherId": "tch_vineeta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_8_1",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 8,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_gulshama"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_8_2",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 8,
+    "dayIds": [2, 3],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_kavita"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_8_3",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 8,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_manisha-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_8_4",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 8,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_gd",
+        "teacherId": "tch_kavita"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_c_8_5",
+    "classId": "6",
+    "sectionId": "sec_6_c",
+    "periodId": 8,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_manisha-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_0_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 0,
+    "dayIds": [1, 2],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_aarti"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_0_2",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 0,
+    "dayIds": [3, 4],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_navpreet"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_0_3",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 0,
+    "dayIds": [5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_chandrika"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_1_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 1,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_aarti"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_2_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 2,
+    "dayIds": [1, 2, 3],
+    "assignments": [
+      {
+        "subjectId": "sub_h-science",
+        "teacherId": "tch_anoop-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_2_2",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 2,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_manisha-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_2_3",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 2,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_gd",
+        "teacherId": "tch_tejinder"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_2_4",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 2,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_jamuna"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_3_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 3,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_lib",
+        "teacherId": "tch_vineeta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_3_2",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 3,
+    "dayIds": [2],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_sanju"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_3_3",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 3,
+    "dayIds": [3],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_mukesh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_3_4",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 3,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_mukesh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_3_5",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 3,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_navpreet"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_3_6",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 3,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_sanju"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_4_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 4,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_couns",
+        "teacherId": "tch_preeti"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_4_2",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 4,
+    "dayIds": [2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_skt",
+        "teacherId": "tch_bhawna"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_5_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 5,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_chandrika"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_6_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 6,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_navpreet"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_7_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 7,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_sst",
+        "teacherId": "tch_neeta-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_d_8_1",
+    "classId": "6",
+    "sectionId": "sec_6_d",
+    "periodId": 8,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_science",
+        "teacherId": "tch_vineeta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_0_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 0,
+    "dayIds": [1, 2],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_disha"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_0_2",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 0,
+    "dayIds": [3, 4],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_shalini"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_0_3",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 0,
+    "dayIds": [5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_seema-g"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_1_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 1,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_disha"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_2_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 2,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_tejinder"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_2_2",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 2,
+    "dayIds": [2],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_mukesh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_2_3",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 2,
+    "dayIds": [3],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_himanshu"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_2_4",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 2,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_monika-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_2_5",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 2,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_gd",
+        "teacherId": "tch_monika-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_2_6",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 2,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_neeta-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_3_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 3,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_shalini"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_4_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 4,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_lib",
+        "teacherId": "tch_vineeta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_4_2",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 4,
+    "dayIds": [2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_pnb",
+        "teacherId": "tch_jaswinder"
+      },
+      {
+        "subjectId": "sub_urdu",
+        "teacherId": "tch_saba"
+      }
+    ],
+    "note": "Elective split"
+  },
+  {
+    "id": "ent_6_e_5_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 5,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_seema-g"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_6_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 6,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_sst",
+        "teacherId": "tch_seema-sh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_7_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 7,
+    "dayIds": [1, 2, 3],
+    "assignments": [
+      {
+        "subjectId": "sub_drawing",
+        "teacherId": "tch_rajni"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_7_2",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 7,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_poonam-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_7_3",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 7,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_monika-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_7_4",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 7,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_monika-m"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_e_8_1",
+    "classId": "6",
+    "sectionId": "sec_6_e",
+    "periodId": 8,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_science",
+        "teacherId": "tch_charul"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_0_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 0,
+    "dayIds": [1, 2],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_sandhya"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_0_2",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 0,
+    "dayIds": [3, 4],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_sanju-yadav"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_0_3",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 0,
+    "dayIds": [5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_ritika"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_1_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 1,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_ritika"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_2_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 2,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_himanshu"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_2_2",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 2,
+    "dayIds": [2],
+    "assignments": [
+      {
+        "subjectId": "sub_lib",
+        "teacherId": "tch_vineeta"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_2_3",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 2,
+    "dayIds": [3],
+    "assignments": [
+      {
+        "subjectId": "sub_games",
+        "teacherId": "tch_mukesh"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_2_4",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 2,
+    "dayIds": [4],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_neeta-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_2_5",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 2,
+    "dayIds": [5],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_neeta-k"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_2_6",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 2,
+    "dayIds": [6],
+    "assignments": [
+      {
+        "subjectId": "sub_gd",
+        "teacherId": "tch_sanju"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_3_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 3,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_science",
+        "teacherId": "tch_divya-t"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_4_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 4,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_jamuna"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_4_2",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 4,
+    "dayIds": [2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_skt",
+        "teacherId": "tch_anuradha"
+      },
+      {
+        "subjectId": "sub_urdu",
+        "teacherId": "tch_saba"
+      }
+    ],
+    "note": "Elective split"
+  },
+  {
+    "id": "ent_6_f_5_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 5,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_sst",
+        "teacherId": "tch_kavita"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_6_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 6,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_hindi",
+        "teacherId": "tch_sanju-yadav"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_7_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 7,
+    "dayIds": [1, 2, 3, 4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_english",
+        "teacherId": "tch_sandhya"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_8_1",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 8,
+    "dayIds": [1],
+    "assignments": [
+      {
+        "subjectId": "sub_se",
+        "teacherId": "tch_sanju"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_8_2",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 8,
+    "dayIds": [2],
+    "assignments": [
+      {
+        "subjectId": "sub_maths",
+        "teacherId": "tch_ritika"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_8_3",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 8,
+    "dayIds": [3],
+    "assignments": [
+      {
+        "subjectId": "sub_kb",
+        "teacherId": "tch_gulshama"
+      }
+    ],
+    "note": null
+  },
+  {
+    "id": "ent_6_f_8_4",
+    "classId": "6",
+    "sectionId": "sec_6_f",
+    "periodId": 8,
+    "dayIds": [4, 5, 6],
+    "assignments": [
+      {
+        "subjectId": "sub_drawing",
+        "teacherId": "tch_rajni"
+      }
+    ],
+    "note": null
+  }
+]
