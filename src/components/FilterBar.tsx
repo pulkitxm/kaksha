@@ -85,7 +85,10 @@ export function FilterBar({ options, filters }: Props) {
 
   const periodOptions: Option[] = options.periods.map((period) => ({
     value: String(period.id),
-    label: `Period ${period.label}`,
+    label:
+      period.name && period.name !== period.label
+        ? `Period ${period.label} · ${period.name}`
+        : `Period ${period.label}`,
   }));
 
   const groupOptions: Option[] = options.groups.map((group) => ({
@@ -114,11 +117,17 @@ export function FilterBar({ options, filters }: Props) {
       value: String(id),
       label: options.days.find((d) => d.id === id)?.name ?? `Day ${id}`,
     })),
-    ...filters.period.map((id) => ({
-      key: "period" as const,
-      value: String(id),
-      label: `Period ${id}`,
-    })),
+    ...filters.period.map((id) => {
+      const period = options.periods.find((p) => p.id === id);
+      return {
+        key: "period" as const,
+        value: String(id),
+        label:
+          period?.name && period.name !== period.label
+            ? `${period.label} · ${period.name}`
+            : `Period ${id}`,
+      };
+    }),
     ...filters.group.map((group) => ({
       key: "group" as const,
       value: group,

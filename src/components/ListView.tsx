@@ -1,10 +1,10 @@
 import { swatch } from "@/lib/colors";
 import { dayNames, formatDayRange } from "@/lib/format";
-import type { Day, Period, ResolvedEntry, Section } from "@/lib/types";
+import type { Day, Period, ResolvedEntry, ResolvedSection } from "@/lib/types";
 
 type Props = {
   entries: ResolvedEntry[];
-  sections: Section[];
+  sections: ResolvedSection[];
   periods: Period[];
   days: Day[];
 };
@@ -71,8 +71,13 @@ export function ListView({ entries, sections, periods, days }: Props) {
                       {section?.name ?? entry.sectionId}
                     </span>
                   </td>
-                  <td className="px-4 py-2.5 font-mono text-xs tabular-nums text-fg-muted">
-                    {period?.label ?? entry.periodId}
+                  <td className="px-4 py-2.5 text-fg-muted">
+                    <span className="font-mono text-xs tabular-nums">
+                      {period?.label ?? entry.periodId}
+                    </span>
+                    {period?.name && period.name !== period.label ? (
+                      <span className="ml-2 text-xs text-fg-faint">{period.name}</span>
+                    ) : null}
                   </td>
                   <td className="px-4 py-2.5">
                     <span className="font-mono text-xs tabular-nums">

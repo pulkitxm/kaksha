@@ -181,11 +181,11 @@ export default async function Page({
       </main>
 
       <footer className="no-print border-t border-line px-4 py-4 sm:px-6">
-        <p className="mx-auto max-w-[1600px] text-xs text-fg-faint">
-          Data lives in <code className="font-mono">data/</code> as JSON tables. Edit
-          <code className="mx-1 font-mono">entries/&lt;classId&gt;.json</code>,
-          <code className="mx-1 font-mono">teachers.json</code> or
-          <code className="mx-1 font-mono">subjects.json</code> and reload.
+        <p className="mx-auto max-w-[1600px] text-xs break-words text-fg-faint">
+          Data lives in <code className="font-mono break-all">data/</code> as JSON tables. Edit{" "}
+          <code className="font-mono break-all">entries/&lt;classId&gt;.json</code>,{" "}
+          <code className="font-mono break-all">teachers.json</code> or{" "}
+          <code className="font-mono break-all">subjects.json</code> and reload.
         </p>
       </footer>
     </div>

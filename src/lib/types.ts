@@ -63,8 +63,12 @@ export type Section = {
   classId: string;
   name: string;
   order: number;
-  electives: string[];
+  electiveSubjectIds: string[];
   note: string | null;
+};
+
+export type ResolvedSection = Omit<Section, "electiveSubjectIds"> & {
+  electives: Subject[];
 };
 
 export type Assignment = {
@@ -160,7 +164,7 @@ export type TimetableResponse = {
   currentClass: ClassRecord;
   days: Day[];
   periods: Period[];
-  sections: Section[];
+  sections: ResolvedSection[];
   subjects: Subject[];
   teachers: Teacher[];
   entries: ResolvedEntry[];

@@ -1,9 +1,9 @@
 import { swatch } from "@/lib/colors";
 import { formatDayRange, isFullWeek } from "@/lib/format";
-import type { Day, Period, ResolvedEntry, Section } from "@/lib/types";
+import type { Day, Period, ResolvedEntry, ResolvedSection } from "@/lib/types";
 
 type Props = {
-  sections: Section[];
+  sections: ResolvedSection[];
   periods: Period[];
   days: Day[];
   entries: ResolvedEntry[];
@@ -119,9 +119,16 @@ export function TimetableGrid({
                 <th
                   key={period.id}
                   scope="col"
-                  className="border-b border-r border-line px-2 py-2.5 text-center text-sm font-semibold last:border-r-0"
+                  className="border-b border-r border-line px-2 py-2 text-center last:border-r-0"
                 >
-                  <span className="font-mono tabular-nums">{period.label}</span>
+                  <span className="block font-mono text-sm font-semibold tabular-nums">
+                    {period.label}
+                  </span>
+                  {period.name && period.name !== period.label ? (
+                    <span className="mt-0.5 block text-[10px] font-medium uppercase tracking-wide text-fg-faint">
+                      {period.name}
+                    </span>
+                  ) : null}
                 </th>
               ))}
             </tr>
@@ -138,8 +145,18 @@ export function TimetableGrid({
                     {section.name}
                   </span>
                   {section.electives.length > 0 ? (
-                    <span className="mt-1.5 block text-[10px] leading-relaxed text-fg-faint">
-                      {section.electives.join(" · ")}
+                    <span
+                      className="mt-1.5 block text-[10px] leading-relaxed"
+                      title={`Extra subjects: ${section.electives
+                        .map((subject) => subject.name)
+                        .join(", ")}`}
+                    >
+                      {section.electives.map((subject, index) => (
+                        <span key={subject.id}>
+                          {index > 0 ? <span className="text-fg-faint"> · </span> : null}
+                          <span className={swatch(subject.color).text}>{subject.code}</span>
+                        </span>
+                      ))}
                     </span>
                   ) : null}
                   {section.note ? (

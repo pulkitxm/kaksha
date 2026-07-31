@@ -17,6 +17,7 @@ import type {
   Filters,
   IntegrityIssue,
   ResolvedEntry,
+  ResolvedSection,
   Stats,
   Subject,
   Teacher,
@@ -354,6 +355,32 @@ export async function getTimetable(
     }
   }
 
+  for (const section of sections) {
+    for (const subjectId of section.electiveSubjectIds) {
+      usedSubjectIds.add(subjectId);
+      if (!subjectById.has(subjectId)) {
+        subjectById.set(subjectId, placeholderSubject(subjectId));
+        issues.push({
+          level: "warning",
+          entity: "section",
+          id: section.id,
+          message: `Elective subjectId "${subjectId}" is not in subjects.json`,
+        });
+      }
+    }
+  }
+
+  const resolvedSections: ResolvedSection[] = sections.map((section) => ({
+    id: section.id,
+    classId: section.classId,
+    name: section.name,
+    order: section.order,
+    note: section.note,
+    electives: section.electiveSubjectIds.map(
+      (subjectId) => subjectById.get(subjectId) ?? placeholderSubject(subjectId),
+    ),
+  }));
+
   const classSubjectIds = new Set<string>([...currentClass.subjectIds, ...usedSubjectIds]);
   const classSubjects = [...classSubjectIds]
     .map((id) => subjectById.get(id) ?? placeholderSubject(id))
@@ -434,7 +461,7 @@ export async function getTimetable(
     currentClass,
     days,
     periods: [...currentClass.periods].sort((a, b) => a.id - b.id),
-    sections,
+    sections: resolvedSections,
     subjects: classSubjects,
     teachers: classTeachers,
     entries: resolved,

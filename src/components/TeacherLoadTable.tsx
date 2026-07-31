@@ -1,10 +1,10 @@
 import { swatch } from "@/lib/colors";
-import type { Day, Section, TeacherLoadRow } from "@/lib/types";
+import type { Day, ResolvedSection, TeacherLoadRow } from "@/lib/types";
 
 type Props = {
   rows: TeacherLoadRow[];
   days: Day[];
-  sections: Section[];
+  sections: ResolvedSection[];
 };
 
 export function TeacherLoadTable({ rows, days, sections }: Props) {

@@ -4,68 +4,70 @@
     "classId": "6",
     "name": "A",
     "order": 0,
-    "electives": [
-      "CA",
-      "Skt/Pb",
-      "Urdu"
-    ],
-    "note": "NIPUN"
+    "note": null,
+    "electiveSubjectIds": [
+      "sub_ca",
+      "sub_skt",
+      "sub_pnb",
+      "sub_urdu"
+    ]
   },
   {
     "id": "sec_6_b",
     "classId": "6",
     "name": "B",
     "order": 1,
-    "electives": [
-      "H.Sc",
-      "Skt/Pb"
-    ],
-    "note": null
+    "note": null,
+    "electiveSubjectIds": [
+      "sub_h-science",
+      "sub_skt",
+      "sub_pnb"
+    ]
   },
   {
     "id": "sec_6_c",
     "classId": "6",
     "name": "C",
     "order": 2,
-    "electives": [
-      "H.Sc",
-      "Skt"
-    ],
-    "note": null
+    "note": null,
+    "electiveSubjectIds": [
+      "sub_h-science",
+      "sub_skt"
+    ]
   },
   {
     "id": "sec_6_d",
     "classId": "6",
     "name": "D",
     "order": 3,
-    "electives": [
-      "H.Sc",
-      "Skt"
-    ],
-    "note": null
+    "note": null,
+    "electiveSubjectIds": [
+      "sub_h-science",
+      "sub_skt"
+    ]
   },
   {
     "id": "sec_6_e",
     "classId": "6",
     "name": "E",
     "order": 4,
-    "electives": [
-      "Draw",
-      "Pb",
-      "Urdu"
-    ],
-    "note": null
+    "note": null,
+    "electiveSubjectIds": [
+      "sub_drawing",
+      "sub_pnb",
+      "sub_urdu"
+    ]
   },
   {
     "id": "sec_6_f",
     "classId": "6",
     "name": "F",
     "order": 5,
-    "electives": [
-      "Draw",
-      "Skt",
-      "Urdu"
-    ],
-    "note": null
+    "note": null,
+    "electiveSubjectIds": [
+      "sub_drawing",
+      "sub_skt",
+      "sub_urdu"
+    ]
   }
 ]
