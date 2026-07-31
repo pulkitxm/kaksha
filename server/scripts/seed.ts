@@ -1,11 +1,10 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
-import { neon } from "@neondatabase/serverless";
 import { config } from "dotenv";
-import { drizzle } from "drizzle-orm/neon-http";
 import { z } from "zod";
 
+import { connect } from "../src/db/connect.js";
 import * as schema from "../src/db/schema.js";
 import {
   classSchema,
@@ -40,7 +39,7 @@ async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
 
-  const db = drizzle(neon(url), { schema, casing: "snake_case" });
+  const { db, close } = connect(url);
 
   const school = await readJson("school.json", schoolSchema);
   const days = await readJson("days.json", z.array(daySchema).min(1));
@@ -253,6 +252,8 @@ async function main() {
   console.log(
     `seeded: ${periodRows.length} periods, ${classSubjectRows.length} class-subjects, ${electiveRows.length} electives, ${dayRows.length} entry-days, ${assignmentRows.length} assignments`,
   );
+
+  await close();
 }
 
 main()
