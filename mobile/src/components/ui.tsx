@@ -1,15 +1,70 @@
-import { Pressable, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { type ComponentProps, type ReactNode } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import { subjectPaint, type SurfaceTheme } from "@kaksha/core";
 
-import { RADIUS, SPACING, useTheme } from "../lib/theme";
+import { RADIUS, SPACING, SPRING_SNAPPY, useTheme } from "../lib/theme";
 
-export function Card({
-  children,
+export type IconName = ComponentProps<typeof Ionicons>["name"];
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+export function PressableScale({
+  onPress,
+  disabled,
+  label,
+  selected,
   style,
+  children,
+  pressedScale = 0.96,
 }: {
-  children: React.ReactNode;
-  style?: ViewStyle;
+  onPress: () => void;
+  disabled?: boolean;
+  label?: string;
+  selected?: boolean;
+  style?: StyleProp<ViewStyle>;
+  children: ReactNode;
+  pressedScale?: number;
 }) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.get() }],
+  }));
+
+  return (
+    <AnimatedPressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={selected === undefined ? undefined : { selected }}
+      onPress={onPress}
+      disabled={disabled}
+      onPressIn={() => {
+        scale.set(withSpring(pressedScale, SPRING_SNAPPY));
+      }}
+      onPressOut={() => {
+        scale.set(withSpring(1, SPRING_SNAPPY));
+      }}
+      style={[animatedStyle, style]}
+    >
+      {children}
+    </AnimatedPressable>
+  );
+}
+
+export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) {
   const theme = useTheme();
   return (
     <View
@@ -97,11 +152,15 @@ export function Button({
   onPress,
   variant = "secondary",
   disabled,
+  busy,
+  icon,
 }: {
   label: string;
   onPress: () => void;
   variant?: "primary" | "secondary" | "danger";
   disabled?: boolean;
+  busy?: boolean;
+  icon?: IconName;
 }) {
   const theme = useTheme();
   const background =
@@ -116,28 +175,123 @@ export function Button({
       : variant === "primary"
         ? theme.accentText
         : "#ffffff";
+  const inactive = disabled === true || busy === true;
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <PressableScale
+      label={label}
       onPress={onPress}
-      disabled={disabled}
-      style={({ pressed }) => ({
+      disabled={inactive}
+      style={{
         backgroundColor: background,
         borderColor: variant === "secondary" ? theme.lineStrong : "transparent",
         borderWidth: StyleSheet.hairlineWidth,
         borderRadius: RADIUS.md,
         paddingHorizontal: SPACING.lg,
         paddingVertical: 11,
-        opacity: disabled ? 0.4 : pressed ? 0.75 : 1,
+        opacity: inactive ? 0.45 : 1,
         minHeight: 44,
+        flexDirection: "row",
+        alignItems: "center",
         justifyContent: "center",
-      })}
+        gap: SPACING.sm,
+      }}
     >
+      {busy ? (
+        <ActivityIndicator size="small" color={color} />
+      ) : icon ? (
+        <Ionicons name={icon} size={16} color={color} />
+      ) : null}
       <Text style={{ color, fontWeight: "600", fontSize: 14, textAlign: "center" }}>
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
+  );
+}
+
+export function IconButton({
+  icon,
+  label,
+  onPress,
+  disabled,
+  tone = "default",
+  size = 20,
+}: {
+  icon: IconName;
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  tone?: "default" | "accent" | "danger";
+  size?: number;
+}) {
+  const theme = useTheme();
+  const color =
+    tone === "accent" ? theme.accent : tone === "danger" ? theme.danger : theme.fgMuted;
+
+  return (
+    <PressableScale
+      label={label}
+      onPress={onPress}
+      disabled={disabled}
+      pressedScale={0.88}
+      style={{
+        width: 38,
+        height: 38,
+        borderRadius: RADIUS.pill,
+        backgroundColor: theme.bgSubtle,
+        borderColor: theme.line,
+        borderWidth: StyleSheet.hairlineWidth,
+        alignItems: "center",
+        justifyContent: "center",
+        opacity: disabled ? 0.45 : 1,
+      }}
+    >
+      <Ionicons name={icon} size={size} color={color} />
+    </PressableScale>
+  );
+}
+
+export function Chip({
+  label,
+  active,
+  onPress,
+  tone,
+  icon,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  tone?: "accent" | "danger";
+  icon?: IconName;
+}) {
+  const theme = useTheme();
+  const activeColor = tone === "danger" ? theme.danger : theme.accent;
+  const activeText = tone === "danger" ? "#ffffff" : theme.accentText;
+
+  return (
+    <PressableScale
+      label={label}
+      selected={active}
+      onPress={onPress}
+      style={{
+        backgroundColor: active ? activeColor : theme.panel,
+        borderColor: active ? activeColor : theme.lineStrong,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: RADIUS.pill,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: 8,
+        minHeight: 36,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 5,
+        justifyContent: "center",
+      }}
+    >
+      {icon ? (
+        <Ionicons name={icon} size={13} color={active ? activeText : theme.fgMuted} />
+      ) : null}
+      <Text style={{ color: active ? activeText : theme.fg, fontSize: 13 }}>{label}</Text>
+    </PressableScale>
   );
 }
 
