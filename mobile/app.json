@@ -2,7 +2,7 @@
   "expo": {
     "name": "Kaksha",
     "slug": "kaksha",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "landscape",
     "icon": "./assets/icon.png",
     "scheme": "kaksha",
@@ -26,7 +26,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "space.kaksha.app"
     },
-    "plugins": ["expo-router", "expo-sharing", "expo-status-bar"],
+    "plugins": [
+      "expo-router",
+      "expo-sharing",
+      "expo-status-bar",
+      "./plugins/with-landscape-lock.js"
+    ],
     "experiments": {
       "typedRoutes": true
     },

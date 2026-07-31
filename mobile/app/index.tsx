@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,8 +12,10 @@ import { ShareView } from "../src/screens/ShareView";
 import { TeachersView } from "../src/screens/TeachersView";
 import { Banner, Button, StatTile } from "../src/components/ui";
 import { Header } from "../src/components/Header";
+import { UpdateCard } from "../src/components/UpdateCard";
 import { useLayout } from "../src/lib/layout";
 import { useStore } from "../src/lib/store";
+import { useAppUpdate } from "../src/lib/update";
 import { SPACING, useTheme } from "../src/lib/theme";
 import { NavRail, type ViewKey } from "../src/components/NavRail";
 
@@ -25,6 +27,12 @@ export default function Home() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sectionsOpen, setSectionsOpen] = useState(false);
   const [editing, setEditing] = useState<EditorTarget | null>(null);
+  const appUpdate = useAppUpdate();
+  const { check: checkForUpdate } = appUpdate;
+
+  useEffect(() => {
+    void checkForUpdate();
+  }, [checkForUpdate]);
 
   const activeFilterCount =
     store.filters.teacher.length +
@@ -72,6 +80,7 @@ export default function Home() {
       contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg }}
       showsVerticalScrollIndicator={false}
     >
+      <UpdateCard state={appUpdate} />
       <Animated.View
         entering={FadeIn.duration(240)}
         style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}
