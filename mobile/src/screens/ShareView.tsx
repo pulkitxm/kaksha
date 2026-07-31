@@ -1,20 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import {
   buildShareModel,
+  buildTeacherShareModel,
   THEMES,
   type DerivedView,
   type Filters,
   type ResolvedDataset,
   type ShareModel,
   type SurfaceTheme,
+  type Teacher,
 } from "@kaksha/core";
 
 import { SelectField } from "../components/Select";
 import { useToast } from "../components/Toast";
 import { Button, Chip } from "../components/ui";
+import { useClassDatasets } from "../lib/classDatasets";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
 
 const EXPORT_WIDTH = 1200;
@@ -269,38 +272,49 @@ export function ShareView({
   const appTheme = useTheme();
   const toast = useToast();
   const [teacherId, setTeacherId] = useState<string | null>(filters.teacher[0] ?? null);
-  const [exportDark, setExportDark] = useState(false);
-  const [job, setJob] = useState<{ model: ShareModel; theme: SurfaceTheme } | null>(null);
+  const [exportDark, setExportDark] = useState(appTheme.isDark);
+  const [job, setJob] = useState<{
+    model: ShareModel;
+    theme: SurfaceTheme;
+    intent: "share" | "preview";
+    fileName: string;
+  } | null>(null);
+  const [preview, setPreview] = useState<{ uri: string; ratio: number } | null>(null);
 
   const exportTheme = exportDark ? THEMES.dark : THEMES.light;
+  const classData = useClassDatasets(dataset);
 
-  const teacherOptions = useMemo(
-    () => [
+  const teacherOptions = useMemo(() => {
+    const byId = new Map<string, Teacher>();
+    for (const source of classData.datasets) {
+      for (const teacher of source.teachers) {
+        if (!byId.has(teacher.id)) byId.set(teacher.id, teacher);
+      }
+    }
+    const merged = [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+    return [
       { id: EVERYONE, label: "Whole class", sublabel: "Everything that matches" },
-      ...dataset.teachers.map((teacher) => ({
+      ...merged.map((teacher) => ({
         id: teacher.id,
         label: teacher.name,
         sublabel: teacher.department ?? undefined,
       })),
-    ],
-    [dataset.teachers],
-  );
-
-  const scoped = useMemo(
-    () =>
-      teacherId
-        ? derived.entries.map((entry) => ({
-            ...entry,
-            matched: entry.assignments.some((a) => a.teacher?.id === teacherId),
-          }))
-        : derived.entries,
-    [derived.entries, teacherId],
-  );
+    ];
+  }, [classData.datasets]);
 
   const model = useMemo(
-    () => buildShareModel(dataset, scoped, filters, teacherId),
-    [dataset, scoped, filters, teacherId],
+    () =>
+      teacherId
+        ? buildTeacherShareModel(classData.datasets, teacherId, filters)
+        : buildShareModel(dataset, derived.entries, filters),
+    [classData.datasets, dataset, derived.entries, filters, teacherId],
   );
+
+  const awaitingClasses = teacherId !== null && classData.loading;
+
+  useEffect(() => {
+    setPreview(null);
+  }, [model, exportTheme]);
 
   async function deliver(uri: string) {
     if (await Sharing.isAvailableAsync()) {
@@ -349,28 +363,101 @@ export function ShareView({
 
       <ShareCard model={model} theme={exportTheme} scale={1} />
 
-      <Button
-        label={job ? "Preparing image" : "Share as image"}
-        variant="primary"
-        icon="share-social-outline"
-        busy={job !== null}
-        onPress={() => {
-          setJob({ model, theme: exportTheme });
-        }}
-      />
+      {awaitingClasses ? (
+        <Text style={{ color: appTheme.fgMuted, fontSize: 12 }}>
+          Adding lectures from the other classes
+        </Text>
+      ) : null}
+
+      {teacherId && classData.missing.length > 0 ? (
+        <Text style={{ color: appTheme.fgMuted, fontSize: 12 }}>
+          Not included right now: {classData.missing.join(", ")}
+        </Text>
+      ) : null}
+
+      <View style={{ flexDirection: "row", gap: SPACING.sm }}>
+        <View style={{ flex: 1 }}>
+          <Button
+            label={job?.intent === "preview" ? "Rendering" : "Preview image"}
+            icon="eye-outline"
+            busy={job?.intent === "preview"}
+            disabled={awaitingClasses || job !== null}
+            onPress={() => {
+              setJob({
+                model,
+                theme: exportTheme,
+                intent: "preview",
+                fileName: `kaksha-preview-${Date.now().toString(36)}`,
+              });
+            }}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button
+            label={job?.intent === "share" ? "Preparing image" : "Share as image"}
+            variant="primary"
+            icon="share-social-outline"
+            busy={job?.intent === "share"}
+            disabled={awaitingClasses || job !== null}
+            onPress={() => {
+              setJob({
+                model,
+                theme: exportTheme,
+                intent: "share",
+                fileName: `kaksha-${slugify(model.title)}`,
+              });
+            }}
+          />
+        </View>
+      </View>
+
+      {preview ? (
+        <View style={{ gap: SPACING.xs }}>
+          <Text style={{ color: appTheme.fgFaint, fontSize: 11, letterSpacing: 0.8 }}>
+            IMAGE PREVIEW
+          </Text>
+          <Image
+            source={{ uri: preview.uri }}
+            resizeMode="contain"
+            style={{
+              width: "100%",
+              aspectRatio: preview.ratio,
+              borderRadius: RADIUS.md,
+              borderColor: appTheme.line,
+              borderWidth: StyleSheet.hairlineWidth,
+            }}
+          />
+          <Text style={{ color: appTheme.fgMuted, fontSize: 11 }}>
+            The exact file that will be shared
+          </Text>
+        </View>
+      ) : null}
 
       {job ? (
         <ExportSurface
           model={job.model}
           theme={job.theme}
-          fileName={`kaksha-${slugify(model.title)}`}
+          fileName={job.fileName}
           onDone={(uri, problem) => {
+            const intent = job.intent;
             setJob(null);
-            if (uri) {
-              void deliver(uri);
-            } else {
+            if (!uri) {
               toast(problem ?? "Could not export the image", "error");
+              return;
             }
+            if (intent === "share") {
+              void deliver(uri);
+              return;
+            }
+            Image.getSize(
+              uri,
+              (width, height) => {
+                setPreview({ uri, ratio: width / height });
+              },
+              () => {
+                setPreview({ uri, ratio: 3 / 2 });
+              },
+            );
           }}
         />
       ) : null}
