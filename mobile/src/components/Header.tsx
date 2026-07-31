@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import Animated, {
   cancelAnimation,
   Easing,
@@ -102,6 +103,7 @@ export function Header({
   onOpenSections: () => void;
 }) {
   const theme = useTheme();
+  const router = useRouter();
   const { classId, setClassId, sync } = useStore();
   const [classPickerOpen, setClassPickerOpen] = useState(false);
 
@@ -190,6 +192,14 @@ export function Header({
       <IconButton icon="albums-outline" label="Sections" onPress={onOpenSections} />
 
       <ReloadButton />
+
+      <IconButton
+        icon="settings-outline"
+        label="Settings"
+        onPress={() => {
+          router.push("/settings");
+        }}
+      />
 
       <SelectSheet
         visible={classPickerOpen}

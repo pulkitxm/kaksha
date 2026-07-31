@@ -5,25 +5,35 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ToastProvider } from "../src/components/Toast";
 import { StoreProvider } from "../src/lib/store";
-import { useTheme } from "../src/lib/theme";
+import { ThemeModeProvider, useTheme } from "../src/lib/theme";
 
-export default function RootLayout() {
+function ThemedShell() {
   const theme = useTheme();
 
   return (
+    <>
+      <StatusBar style={theme.isDark ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: theme.bg },
+        }}
+      />
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ToastProvider>
-          <StoreProvider>
-            <StatusBar style={theme.isDark ? "light" : "dark"} />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: theme.bg },
-              }}
-            />
-          </StoreProvider>
-        </ToastProvider>
+        <ThemeModeProvider>
+          <ToastProvider>
+            <StoreProvider>
+              <ThemedShell />
+            </StoreProvider>
+          </ToastProvider>
+        </ThemeModeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
