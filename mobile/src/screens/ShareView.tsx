@@ -272,7 +272,7 @@ export function ShareView({
   const appTheme = useTheme();
   const toast = useToast();
   const [teacherId, setTeacherId] = useState<string | null>(filters.teacher[0] ?? null);
-  const [exportDark, setExportDark] = useState(false);
+  const [exportDark, setExportDark] = useState(appTheme.isDark);
   const [job, setJob] = useState<{ model: ShareModel; theme: SurfaceTheme } | null>(null);
 
   const exportTheme = exportDark ? THEMES.dark : THEMES.light;
