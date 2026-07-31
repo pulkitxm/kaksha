@@ -2,9 +2,8 @@ import { useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { ResolvedEntry } from "@kaksha/core";
 
-import { EntryEditor } from "../src/components/EntryEditor";
+import { EntryEditor, type EditorTarget } from "../src/components/EntryEditor";
 import { FilterSheet } from "../src/components/FilterSheet";
 import { GridView } from "../src/screens/GridView";
 import { ListView } from "../src/screens/ListView";
@@ -25,7 +24,7 @@ export default function Home() {
   const [view, setView] = useState<ViewKey>("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sectionsOpen, setSectionsOpen] = useState(false);
-  const [editing, setEditing] = useState<ResolvedEntry | null>(null);
+  const [editing, setEditing] = useState<EditorTarget | null>(null);
 
   const activeFilterCount =
     store.filters.teacher.length +
@@ -91,10 +90,25 @@ export default function Home() {
 
       <Animated.View key={view} entering={FadeInDown.duration(220)}>
         {view === "grid" ? (
-          <GridView dataset={dataset} derived={derived} onEdit={setEditing} />
+          <GridView
+            dataset={dataset}
+            derived={derived}
+            onEdit={(entry) => {
+              setEditing({ mode: "edit", entry });
+            }}
+            onCreate={(sectionId, periodId) => {
+              setEditing({ mode: "create", sectionId, periodId });
+            }}
+          />
         ) : null}
         {view === "list" ? (
-          <ListView dataset={dataset} derived={derived} onEdit={setEditing} />
+          <ListView
+            dataset={dataset}
+            derived={derived}
+            onEdit={(entry) => {
+              setEditing({ mode: "edit", entry });
+            }}
+          />
         ) : null}
         {view === "teachers" ? (
           <TeachersView dataset={dataset} derived={derived} />
@@ -151,19 +165,13 @@ export default function Home() {
         onClose={() => {
           setSectionsOpen(false);
         }}
-        onSaved={() => {
-          void store.reload();
-        }}
       />
 
       <EntryEditor
-        entry={editing}
+        target={editing}
         dataset={dataset}
         onClose={() => {
           setEditing(null);
-        }}
-        onSaved={() => {
-          void store.reload();
         }}
       />
     </SafeAreaView>

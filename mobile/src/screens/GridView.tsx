@@ -17,10 +17,12 @@ export function GridView({
   dataset,
   derived,
   onEdit,
+  onCreate,
 }: {
   dataset: ResolvedDataset;
   derived: DerivedView;
   onEdit: (entry: ResolvedEntry) => void;
+  onCreate: (sectionId: string, periodId: number) => void;
 }) {
   const theme = useTheme();
   const layout = useLayout();
@@ -157,15 +159,21 @@ export function GridView({
                         }}
                       >
                         {cell.length === 0 ? (
-                          <Text
-                            style={{
-                              color: theme.fgFaint,
-                              textAlign: "center",
-                              paddingVertical: SPACING.md,
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel={`Add a lecture for section ${section.name}, period ${period.label}`}
+                            onPress={() => {
+                              onCreate(section.id, period.id);
                             }}
+                            style={({ pressed }) => ({
+                              borderRadius: RADIUS.sm,
+                              paddingVertical: SPACING.md,
+                              alignItems: "center",
+                              backgroundColor: pressed ? theme.panelHover : "transparent",
+                            })}
                           >
-                            -
-                          </Text>
+                            <Text style={{ color: theme.fgFaint }}>+</Text>
+                          </Pressable>
                         ) : (
                           cell.map((entry) => (
                             <Pressable

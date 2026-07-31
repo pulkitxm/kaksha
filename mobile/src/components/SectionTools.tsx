@@ -1,267 +1,279 @@
-import { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ResolvedDataset } from "@kaksha/core";
 
 import { useStore } from "../lib/store";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
-import { Banner, Button } from "./ui";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { Sheet } from "./Sheet";
+import { useToast } from "./Toast";
+import { Button, Chip } from "./ui";
 
 type Props = {
   visible: boolean;
   dataset: ResolvedDataset;
   onClose: () => void;
-  onSaved: () => void;
 };
 
-export function SectionTools({ visible, dataset, onClose, onSaved }: Props) {
+type PendingAction = { kind: "merge" } | { kind: "relabel" } | null;
+
+function Heading({ text, hint }: { text: string; hint: string }) {
+  const theme = useTheme();
+  return (
+    <View style={{ marginBottom: SPACING.sm, marginTop: SPACING.lg }}>
+      <Text style={{ color: theme.fg, fontSize: 15, fontWeight: "700" }}>{text}</Text>
+      <Text style={{ color: theme.fgMuted, fontSize: 12, marginTop: 2 }}>{hint}</Text>
+    </View>
+  );
+}
+
+function SmallLabel({ text }: { text: string }) {
+  const theme = useTheme();
+  return (
+    <Text
+      style={{
+        color: theme.fgFaint,
+        fontSize: 11,
+        letterSpacing: 0.8,
+        marginBottom: SPACING.xs,
+        marginTop: SPACING.sm,
+      }}
+    >
+      {text}
+    </Text>
+  );
+}
+
+export function SectionTools({ visible, dataset, onClose }: Props) {
   const theme = useTheme();
   const store = useStore();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [mergeSource, setMergeSource] = useState<string | null>(null);
   const [mergeTarget, setMergeTarget] = useState<string | null>(null);
+  const [pending, setPending] = useState<PendingAction>(null);
 
-  async function run(action: () => Promise<unknown>) {
+  useEffect(() => {
+    if (visible) {
+      setRenameId(null);
+      setRenameValue("");
+      setMergeSource(null);
+      setMergeTarget(null);
+      setPending(null);
+    }
+  }, [visible]);
+
+  const nameById = useMemo(
+    () => new Map(dataset.sections.map((section) => [section.id, section.name])),
+    [dataset.sections],
+  );
+
+  async function run(action: () => Promise<"synced" | "queued">, done: string) {
     setBusy(true);
-    setError(null);
     try {
-      await action();
-      onSaved();
+      const result = await action();
+      toast(result === "synced" ? done : `${done} offline, syncs later`, "success");
+      setPending(null);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Operation failed");
+      toast(cause instanceof Error ? cause.message : "Operation failed", "error");
+      setPending(null);
     } finally {
       setBusy(false);
     }
   }
 
-  function Chip({
-    label,
-    active,
-    onPress,
-    tone,
-  }: {
-    label: string;
-    active: boolean;
-    onPress: () => void;
-    tone?: string;
-  }) {
-    const background = active ? (tone ?? theme.accent) : theme.panel;
-    return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ selected: active }}
-        onPress={onPress}
-        style={{
-          backgroundColor: background,
-          borderColor: active ? background : theme.lineStrong,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderRadius: RADIUS.pill,
-          paddingHorizontal: SPACING.md,
-          paddingVertical: 8,
-          marginRight: SPACING.sm,
-          marginBottom: SPACING.sm,
-          minHeight: 36,
-          justifyContent: "center",
-        }}
-      >
-        <Text style={{ color: active ? "#ffffff" : theme.fg, fontSize: 13 }}>
-          {label}
-        </Text>
-      </Pressable>
-    );
-  }
-
-  function Heading({ text, hint }: { text: string; hint?: string }) {
-    return (
-      <View style={{ marginBottom: SPACING.sm, marginTop: SPACING.lg }}>
-        <Text style={{ color: theme.fg, fontSize: 15, fontWeight: "700" }}>{text}</Text>
-        {hint ? (
-          <Text style={{ color: theme.fgMuted, fontSize: 12, marginTop: 2 }}>{hint}</Text>
-        ) : null}
-      </View>
-    );
-  }
-
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: "#00000099", justifyContent: "flex-end" }}>
-        <View
-          style={{
-            backgroundColor: theme.bg,
-            borderTopLeftRadius: RADIUS.lg,
-            borderTopRightRadius: RADIUS.lg,
-            maxHeight: "92%",
-            paddingTop: SPACING.lg,
-          }}
+    <>
+      <Sheet
+        visible={visible}
+        title="Sections"
+        subtitle="Rename, merge or relabel the class sections"
+        onClose={onClose}
+      >
+        <ScrollView
+          style={{ paddingHorizontal: SPACING.lg }}
+          keyboardShouldPersistTaps="handled"
         >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              paddingHorizontal: SPACING.lg,
-              paddingBottom: SPACING.sm,
-            }}
-          >
-            <Text style={{ color: theme.fg, fontSize: 17, fontWeight: "700" }}>
-              Sections
-            </Text>
-            <Pressable accessibilityRole="button" onPress={onClose} hitSlop={12}>
-              <Text style={{ color: theme.fgMuted, fontSize: 15 }}>Close</Text>
-            </Pressable>
-          </View>
-
-          <ScrollView style={{ paddingHorizontal: SPACING.lg }}>
-            {error ? <Banner text={error} tone="error" /> : null}
-
-            <Heading text="Rename" hint="Pick a section, then type its new name" />
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              {dataset.sections.map((section) => (
-                <Chip
-                  key={section.id}
-                  label={section.name}
-                  active={section.id === renameId}
-                  onPress={() => {
-                    setRenameId(section.id);
-                    setRenameValue(section.name);
-                  }}
-                />
-              ))}
-            </View>
-            {renameId ? (
-              <View
-                style={{ flexDirection: "row", gap: SPACING.sm, alignItems: "center" }}
-              >
-                <TextInput
-                  value={renameValue}
-                  onChangeText={setRenameValue}
-                  placeholder="New name"
-                  placeholderTextColor={theme.fgFaint}
-                  style={{
-                    flex: 1,
-                    borderColor: theme.lineStrong,
-                    borderWidth: StyleSheet.hairlineWidth,
-                    borderRadius: RADIUS.md,
-                    color: theme.fg,
-                    paddingHorizontal: SPACING.md,
-                    minHeight: 44,
-                  }}
-                />
-                <Button
-                  label="Rename"
-                  variant="primary"
-                  disabled={busy || renameValue.trim().length === 0}
-                  onPress={() => {
-                    void run(async () => {
-                      await store.mutate({
-                        kind: "renameSection",
-                        id: renameId,
-                        name: renameValue.trim(),
-                      });
-                      setRenameId(null);
-                    });
-                  }}
-                />
-              </View>
-            ) : null}
-
-            <Heading
-              text="Merge"
-              hint="The source folds into the target and the rest are relabelled"
-            />
-            <Text
-              style={{ color: theme.fgFaint, fontSize: 11, marginBottom: SPACING.xs }}
-            >
-              MERGE THIS
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              {dataset.sections.map((section) => (
-                <Chip
-                  key={`src-${section.id}`}
-                  label={section.name}
-                  active={section.id === mergeSource}
-                  tone={theme.danger}
-                  onPress={() => {
-                    setMergeSource(section.id);
-                  }}
-                />
-              ))}
-            </View>
-            <Text
-              style={{ color: theme.fgFaint, fontSize: 11, marginBottom: SPACING.xs }}
-            >
-              INTO
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-              {dataset.sections
-                .filter((section) => section.id !== mergeSource)
-                .map((section) => (
-                  <Chip
-                    key={`dst-${section.id}`}
-                    label={section.name}
-                    active={section.id === mergeTarget}
-                    onPress={() => {
-                      setMergeTarget(section.id);
-                    }}
-                  />
-                ))}
-            </View>
-            <Button
-              label="Merge sections"
-              variant="danger"
-              disabled={busy || !mergeSource || !mergeTarget}
-              onPress={() => {
-                if (!mergeSource || !mergeTarget) return;
-                void run(async () => {
-                  await store.mutate({
-                    kind: "mergeSections",
-                    input: {
-                      classId: dataset.classId,
-                      sourceId: mergeSource,
-                      targetId: mergeTarget,
-                      relabel: true,
-                    },
-                  });
-                  setMergeSource(null);
-                  setMergeTarget(null);
-                });
-              }}
-            />
-
-            <Heading
-              text="Relabel"
-              hint="Renumber every section as A, B, C in current order"
-            />
-            <View style={{ marginBottom: SPACING.xl }}>
-              <Button
-                label="Relabel sequentially"
-                disabled={busy}
+          <Heading text="Rename" hint="Pick a section, then type its new name" />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+            {dataset.sections.map((section) => (
+              <Chip
+                key={section.id}
+                label={section.name}
+                active={section.id === renameId}
                 onPress={() => {
-                  void run(() =>
-                    store.mutate({
-                      kind: "reorderSections",
-                      input: {
-                        classId: dataset.classId,
-                        orderedIds: dataset.sections.map((section) => section.id),
-                        relabel: true,
-                      },
-                    }),
-                  );
+                  setRenameId(section.id);
+                  setRenameValue(section.name);
+                }}
+              />
+            ))}
+          </View>
+          {renameId ? (
+            <View
+              style={{
+                flexDirection: "row",
+                gap: SPACING.sm,
+                alignItems: "center",
+                marginTop: SPACING.sm,
+              }}
+            >
+              <TextInput
+                value={renameValue}
+                onChangeText={setRenameValue}
+                placeholder="New name"
+                placeholderTextColor={theme.fgFaint}
+                maxLength={20}
+                style={{
+                  flex: 1,
+                  borderColor: theme.lineStrong,
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderRadius: RADIUS.md,
+                  color: theme.fg,
+                  paddingHorizontal: SPACING.md,
+                  minHeight: 44,
+                }}
+              />
+              <Button
+                label="Rename"
+                variant="primary"
+                disabled={busy || renameValue.trim().length === 0}
+                onPress={() => {
+                  void run(async () => {
+                    const result = await store.mutate({
+                      kind: "renameSection",
+                      id: renameId,
+                      name: renameValue.trim(),
+                    });
+                    setRenameId(null);
+                    return result;
+                  }, "Section renamed");
                 }}
               />
             </View>
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
+          ) : null}
+
+          <Heading
+            text="Merge"
+            hint="Move every lecture of one section into another, then drop it"
+          />
+          <SmallLabel text="MERGE THIS" />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+            {dataset.sections.map((section) => (
+              <Chip
+                key={`src-${section.id}`}
+                label={section.name}
+                active={section.id === mergeSource}
+                tone="danger"
+                onPress={() => {
+                  setMergeSource(section.id);
+                  if (mergeTarget === section.id) setMergeTarget(null);
+                }}
+              />
+            ))}
+          </View>
+          <SmallLabel text="INTO" />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
+            {dataset.sections
+              .filter((section) => section.id !== mergeSource)
+              .map((section) => (
+                <Chip
+                  key={`dst-${section.id}`}
+                  label={section.name}
+                  active={section.id === mergeTarget}
+                  onPress={() => {
+                    setMergeTarget(section.id);
+                  }}
+                />
+              ))}
+          </View>
+          <View style={{ marginTop: SPACING.md }}>
+            <Button
+              label="Merge sections"
+              variant="danger"
+              icon="git-merge-outline"
+              disabled={busy || !mergeSource || !mergeTarget}
+              onPress={() => {
+                setPending({ kind: "merge" });
+              }}
+            />
+          </View>
+
+          <Heading
+            text="Relabel"
+            hint="Renumber every section as A, B, C in current order"
+          />
+          <View style={{ marginBottom: SPACING.xl }}>
+            <Button
+              label="Relabel sequentially"
+              icon="swap-vertical-outline"
+              disabled={busy}
+              onPress={() => {
+                setPending({ kind: "relabel" });
+              }}
+            />
+          </View>
+        </ScrollView>
+      </Sheet>
+
+      <ConfirmDialog
+        visible={pending?.kind === "merge"}
+        title={`Merge ${nameById.get(mergeSource ?? "") ?? "?"} into ${
+          nameById.get(mergeTarget ?? "") ?? "?"
+        }?`}
+        message="All its lectures move over, the section is removed and the rest are relabelled. This cannot be undone."
+        confirmLabel="Merge"
+        icon="git-merge-outline"
+        destructive
+        busy={busy}
+        onConfirm={() => {
+          if (!mergeSource || !mergeTarget) return;
+          void run(async () => {
+            const result = await store.mutate({
+              kind: "mergeSections",
+              input: {
+                classId: dataset.classId,
+                sourceId: mergeSource,
+                targetId: mergeTarget,
+                relabel: true,
+              },
+            });
+            setMergeSource(null);
+            setMergeTarget(null);
+            return result;
+          }, "Sections merged");
+        }}
+        onCancel={() => {
+          setPending(null);
+        }}
+      />
+
+      <ConfirmDialog
+        visible={pending?.kind === "relabel"}
+        title="Relabel all sections?"
+        message="Every section is renamed to A, B, C and so on in its current order."
+        confirmLabel="Relabel"
+        icon="swap-vertical-outline"
+        busy={busy}
+        onConfirm={() => {
+          void run(
+            () =>
+              store.mutate({
+                kind: "reorderSections",
+                input: {
+                  classId: dataset.classId,
+                  orderedIds: dataset.sections.map((section) => section.id),
+                  relabel: true,
+                },
+              }),
+            "Sections relabelled",
+          );
+        }}
+        onCancel={() => {
+          setPending(null);
+        }}
+      />
+    </>
   );
 }
