@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Linking, Platform } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { Linking } from "react-native";
 import Constants from "expo-constants";
 import { File, Paths } from "expo-file-system";
 import { getContentUriAsync } from "expo-file-system/legacy";
@@ -34,12 +34,16 @@ type AppUpdate = {
   fileName: string;
 };
 
+type CheckOutcome = "update" | "current" | "failed" | "skipped";
+
 type DownloadOutcome = "installing" | "browser" | "failed";
 
 export type AppUpdateController = {
   update: AppUpdate | null;
+  checking: boolean;
   downloading: boolean;
   progress: number;
+  check: () => Promise<CheckOutcome>;
   download: () => Promise<DownloadOutcome>;
   dismiss: () => void;
 };
@@ -100,26 +104,32 @@ async function fetchAvailableUpdate(signal: AbortSignal): Promise<AppUpdate | nu
 export function useAppUpdate(): AppUpdateController {
   const [update, setUpdate] = useState<AppUpdate | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const checkBusy = useRef(false);
   const busy = useRef(false);
 
-  useEffect(() => {
-    if (Platform.OS !== "android") return;
+  const check = useCallback(async (): Promise<CheckOutcome> => {
+    if (checkBusy.current) return "skipped";
+    checkBusy.current = true;
+    setChecking(true);
     const controller = new AbortController();
     const timer = setTimeout(() => {
       controller.abort();
     }, CHECK_TIMEOUT_MS);
-    void fetchAvailableUpdate(controller.signal)
-      .then(setUpdate)
-      .catch(() => undefined)
-      .finally(() => {
-        clearTimeout(timer);
-      });
-    return () => {
+    try {
+      const found = await fetchAvailableUpdate(controller.signal);
+      setUpdate(found);
+      setDismissed(false);
+      return found ? "update" : "current";
+    } catch {
+      return "failed";
+    } finally {
       clearTimeout(timer);
-      controller.abort();
-    };
+      checkBusy.current = false;
+      setChecking(false);
+    }
   }, []);
 
   const download = useCallback(async (): Promise<DownloadOutcome> => {
@@ -162,8 +172,10 @@ export function useAppUpdate(): AppUpdateController {
 
   return {
     update: dismissed ? null : update,
+    checking,
     downloading,
     progress,
+    check,
     download,
     dismiss,
   };

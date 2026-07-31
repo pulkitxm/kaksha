@@ -131,6 +131,7 @@ export default function Home() {
     >
       <Header
         dataset={dataset}
+        appUpdate={appUpdate}
         activeFilterCount={activeFilterCount}
         onOpenFilters={() => {
           setFiltersOpen(true);
