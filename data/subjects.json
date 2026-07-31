@@ -1,0 +1,121 @@
+[
+  {
+    "id": "sub_english",
+    "code": "English",
+    "name": "English",
+    "group": "core",
+    "color": "blue"
+  },
+  {
+    "id": "sub_hindi",
+    "code": "Hindi",
+    "name": "Hindi",
+    "group": "core",
+    "color": "orange"
+  },
+  {
+    "id": "sub_maths",
+    "code": "Maths",
+    "name": "Mathematics",
+    "group": "core",
+    "color": "violet"
+  },
+  {
+    "id": "sub_science",
+    "code": "Science",
+    "name": "Science",
+    "group": "core",
+    "color": "emerald"
+  },
+  {
+    "id": "sub_sst",
+    "code": "SST",
+    "name": "Social Science",
+    "group": "core",
+    "color": "amber"
+  },
+  {
+    "id": "sub_h-science",
+    "code": "H.Science",
+    "name": "Home Science",
+    "group": "elective",
+    "color": "rose"
+  },
+  {
+    "id": "sub_skt",
+    "code": "Skt",
+    "name": "Sanskrit",
+    "group": "language",
+    "color": "teal"
+  },
+  {
+    "id": "sub_pnb",
+    "code": "Pnb",
+    "name": "Punjabi",
+    "group": "language",
+    "color": "teal"
+  },
+  {
+    "id": "sub_urdu",
+    "code": "Urdu",
+    "name": "Urdu",
+    "group": "language",
+    "color": "teal"
+  },
+  {
+    "id": "sub_ca",
+    "code": "CA",
+    "name": "Computer Application",
+    "group": "elective",
+    "color": "cyan"
+  },
+  {
+    "id": "sub_kb",
+    "code": "KB",
+    "name": "Kaushal Bodh",
+    "group": "activity",
+    "color": "lime"
+  },
+  {
+    "id": "sub_se",
+    "code": "SE",
+    "name": "Skill Education",
+    "group": "activity",
+    "color": "fuchsia"
+  },
+  {
+    "id": "sub_gd",
+    "code": "Gd",
+    "name": "Guidance",
+    "group": "activity",
+    "color": "sky"
+  },
+  {
+    "id": "sub_games",
+    "code": "Games",
+    "name": "Games",
+    "group": "activity",
+    "color": "lime"
+  },
+  {
+    "id": "sub_lib",
+    "code": "Lib",
+    "name": "Library",
+    "group": "activity",
+    "color": "slate"
+  },
+  {
+    "id": "sub_drawing",
+    "code": "Drawing",
+    "name": "Drawing",
+    "group": "elective",
+    "color": "rose"
+  },
+  {
+    "id": "sub_couns",
+    "code": "Couns.",
+    "name": "Counselling",
+    "group": "activity",
+    "color": "slate"
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Monday",
+    "short": "Mon",
+    "order": 1
+  },
+  {
+    "id": 2,
+    "name": "Tuesday",
+    "short": "Tue",
+    "order": 2
+  },
+  {
+    "id": 3,
+    "name": "Wednesday",
+    "short": "Wed",
+    "order": 3
+  },
+  {
+    "id": 4,
+    "name": "Thursday",
+    "short": "Thu",
+    "order": 4
+  },
+  {
+    "id": 5,
+    "name": "Friday",
+    "short": "Fri",
+    "order": 5
+  },
+  {
+    "id": 6,
+    "name": "Saturday",
+    "short": "Sat",
+    "order": 6
+  }
+]

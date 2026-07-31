@@ -1,0 +1,405 @@
+[
+  {
+    "id": "6",
+    "name": "Class VI",
+    "shortName": "VI",
+    "order": 0,
+    "active": true,
+    "periods": [
+      {
+        "id": 0,
+        "name": "0",
+        "label": "0"
+      },
+      {
+        "id": 1,
+        "name": "1",
+        "label": "1"
+      },
+      {
+        "id": 2,
+        "name": "2",
+        "label": "2"
+      },
+      {
+        "id": 3,
+        "name": "3",
+        "label": "3"
+      },
+      {
+        "id": 4,
+        "name": "4",
+        "label": "4"
+      },
+      {
+        "id": 5,
+        "name": "5",
+        "label": "5"
+      },
+      {
+        "id": 6,
+        "name": "6",
+        "label": "6"
+      },
+      {
+        "id": 7,
+        "name": "7",
+        "label": "7"
+      },
+      {
+        "id": 8,
+        "name": "8",
+        "label": "8"
+      }
+    ],
+    "subjectIds": [
+      "sub_english",
+      "sub_hindi",
+      "sub_maths",
+      "sub_science",
+      "sub_sst",
+      "sub_h-science",
+      "sub_skt",
+      "sub_pnb",
+      "sub_urdu",
+      "sub_ca",
+      "sub_kb",
+      "sub_se",
+      "sub_gd",
+      "sub_games",
+      "sub_lib",
+      "sub_drawing",
+      "sub_couns"
+    ]
+  },
+  {
+    "id": "7",
+    "name": "Class VII",
+    "shortName": "VII",
+    "order": 1,
+    "active": false,
+    "periods": [
+      {
+        "id": 0,
+        "name": "0",
+        "label": "0"
+      },
+      {
+        "id": 1,
+        "name": "1",
+        "label": "1"
+      },
+      {
+        "id": 2,
+        "name": "2",
+        "label": "2"
+      },
+      {
+        "id": 3,
+        "name": "3",
+        "label": "3"
+      },
+      {
+        "id": 4,
+        "name": "4",
+        "label": "4"
+      },
+      {
+        "id": 5,
+        "name": "5",
+        "label": "5"
+      },
+      {
+        "id": 6,
+        "name": "6",
+        "label": "6"
+      },
+      {
+        "id": 7,
+        "name": "7",
+        "label": "7"
+      },
+      {
+        "id": 8,
+        "name": "8",
+        "label": "8"
+      }
+    ],
+    "subjectIds": []
+  },
+  {
+    "id": "8",
+    "name": "Class VIII",
+    "shortName": "VIII",
+    "order": 2,
+    "active": false,
+    "periods": [
+      {
+        "id": 0,
+        "name": "0",
+        "label": "0"
+      },
+      {
+        "id": 1,
+        "name": "1",
+        "label": "1"
+      },
+      {
+        "id": 2,
+        "name": "2",
+        "label": "2"
+      },
+      {
+        "id": 3,
+        "name": "3",
+        "label": "3"
+      },
+      {
+        "id": 4,
+        "name": "4",
+        "label": "4"
+      },
+      {
+        "id": 5,
+        "name": "5",
+        "label": "5"
+      },
+      {
+        "id": 6,
+        "name": "6",
+        "label": "6"
+      },
+      {
+        "id": 7,
+        "name": "7",
+        "label": "7"
+      },
+      {
+        "id": 8,
+        "name": "8",
+        "label": "8"
+      }
+    ],
+    "subjectIds": []
+  },
+  {
+    "id": "9",
+    "name": "Class IX",
+    "shortName": "IX",
+    "order": 3,
+    "active": false,
+    "periods": [
+      {
+        "id": 0,
+        "name": "0",
+        "label": "0"
+      },
+      {
+        "id": 1,
+        "name": "1",
+        "label": "1"
+      },
+      {
+        "id": 2,
+        "name": "2",
+        "label": "2"
+      },
+      {
+        "id": 3,
+        "name": "3",
+        "label": "3"
+      },
+      {
+        "id": 4,
+        "name": "4",
+        "label": "4"
+      },
+      {
+        "id": 5,
+        "name": "5",
+        "label": "5"
+      },
+      {
+        "id": 6,
+        "name": "6",
+        "label": "6"
+      },
+      {
+        "id": 7,
+        "name": "7",
+        "label": "7"
+      },
+      {
+        "id": 8,
+        "name": "8",
+        "label": "8"
+      }
+    ],
+    "subjectIds": []
+  },
+  {
+    "id": "10",
+    "name": "Class X",
+    "shortName": "X",
+    "order": 4,
+    "active": false,
+    "periods": [
+      {
+        "id": 0,
+        "name": "0",
+        "label": "0"
+      },
+      {
+        "id": 1,
+        "name": "1",
+        "label": "1"
+      },
+      {
+        "id": 2,
+        "name": "2",
+        "label": "2"
+      },
+      {
+        "id": 3,
+        "name": "3",
+        "label": "3"
+      },
+      {
+        "id": 4,
+        "name": "4",
+        "label": "4"
+      },
+      {
+        "id": 5,
+        "name": "5",
+        "label": "5"
+      },
+      {
+        "id": 6,
+        "name": "6",
+        "label": "6"
+      },
+      {
+        "id": 7,
+        "name": "7",
+        "label": "7"
+      },
+      {
+        "id": 8,
+        "name": "8",
+        "label": "8"
+      }
+    ],
+    "subjectIds": []
+  },
+  {
+    "id": "11",
+    "name": "Class XI",
+    "shortName": "XI",
+    "order": 5,
+    "active": false,
+    "periods": [
+      {
+        "id": 0,
+        "name": "0",
+        "label": "0"
+      },
+      {
+        "id": 1,
+        "name": "1",
+        "label": "1"
+      },
+      {
+        "id": 2,
+        "name": "2",
+        "label": "2"
+      },
+      {
+        "id": 3,
+        "name": "3",
+        "label": "3"
+      },
+      {
+        "id": 4,
+        "name": "4",
+        "label": "4"
+      },
+      {
+        "id": 5,
+        "name": "5",
+        "label": "5"
+      },
+      {
+        "id": 6,
+        "name": "6",
+        "label": "6"
+      },
+      {
+        "id": 7,
+        "name": "7",
+        "label": "7"
+      },
+      {
+        "id": 8,
+        "name": "8",
+        "label": "8"
+      }
+    ],
+    "subjectIds": []
+  },
+  {
+    "id": "12",
+    "name": "Class XII",
+    "shortName": "XII",
+    "order": 6,
+    "active": false,
+    "periods": [
+      {
+        "id": 0,
+        "name": "0",
+        "label": "0"
+      },
+      {
+        "id": 1,
+        "name": "1",
+        "label": "1"
+      },
+      {
+        "id": 2,
+        "name": "2",
+        "label": "2"
+      },
+      {
+        "id": 3,
+        "name": "3",
+        "label": "3"
+      },
+      {
+        "id": 4,
+        "name": "4",
+        "label": "4"
+      },
+      {
+        "id": 5,
+        "name": "5",
+        "label": "5"
+      },
+      {
+        "id": 6,
+        "name": "6",
+        "label": "6"
+      },
+      {
+        "id": 7,
+        "name": "7",
+        "label": "7"
+      },
+      {
+        "id": 8,
+        "name": "8",
+        "label": "8"
+      }
+    ],
+    "subjectIds": []
+  }
+]
