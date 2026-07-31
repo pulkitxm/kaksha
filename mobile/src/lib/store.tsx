@@ -30,6 +30,8 @@ type CachedDataset = { raw: RawDataset; fetchedAt: string };
 
 export type MutationResult = "synced" | "queued";
 
+export type ReloadResult = "synced" | "offline";
+
 type SyncState = {
   syncing: boolean;
   offline: boolean;
@@ -50,7 +52,7 @@ type StoreValue = {
   clearFilters: () => void;
   setClassId: (next: string) => void;
   mutate: (op: LocalOp) => Promise<MutationResult>;
-  reload: () => Promise<void>;
+  reload: () => Promise<ReloadResult>;
 };
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -118,7 +120,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [commitQueue]);
 
   const refresh = useCallback(
-    async (silent: boolean) => {
+    async (silent: boolean): Promise<ReloadResult> => {
       setSyncing(true);
       if (!silent) {
         setStatus(rawRef.current ? "ready" : "loading");
@@ -128,7 +130,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         const flushed = await flushQueue();
         if (!flushed) {
           setOffline(true);
-          return;
+          return "offline";
         }
         const fetched = await fetchRawDataset(classRef.current);
         commitRaw(fetched, true);
@@ -136,12 +138,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setLastSyncedAt(new Date().toISOString());
         setStatus("ready");
         setError(null);
+        return "synced";
       } catch (cause) {
         setOffline(true);
         if (!rawRef.current) {
           setError(cause instanceof Error ? cause.message : "Could not reach the server");
           setStatus("error");
         }
+        return "offline";
       } finally {
         setSyncing(false);
       }
