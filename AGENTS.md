@@ -32,6 +32,18 @@ bun run dead-code      # knip
 bun run build          # core then server
 ```
 
+### Building an APK
+
+```bash
+bun run apk         # cloud build via EAS, no local Android toolchain needed
+bun run apk:local   # gradle on this machine, needs a JDK and the Android SDK
+```
+
+`apk:local` prebuilds the native project if it is missing, runs
+`assembleRelease`, and copies the artifact to `mobile/build/`. It checks for the
+JDK and SDK first and tells you what to install if either is absent. The
+generated `mobile/android` directory is disposable and is not committed.
+
 Bun is the only package manager and runtime. There is no npm lockfile and no
 Node version file; `.bun-version` pins the toolchain for CI.
 

@@ -8,7 +8,9 @@
     "android": "bunx expo start --android",
     "typecheck": "bunx tsc --noEmit",
     "prebuild": "bunx expo prebuild --platform android --clean",
-    "bundle:android": "bunx expo export --platform android --output-dir .expo/export"
+    "bundle:android": "bunx expo export --platform android --output-dir .expo/export",
+    "apk": "bunx eas-cli build --platform android --profile preview",
+    "apk:local": "bun run scripts/build-apk.mjs"
   },
   "dependencies": {
     "@babel/runtime": "^8.0.0",
@@ -21,6 +23,7 @@
     "expo-router": "~57.0.9",
     "expo-sharing": "~13.0.1",
     "expo-status-bar": "~2.0.1",
+    "expo-system-ui": "^57.0.2",
     "react": "18.3.1",
     "react-native": "0.86.2",
     "react-native-safe-area-context": "4.12.0",

@@ -19,7 +19,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#faf3e3"
       },
-      "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "pan"
     },
     "ios": {
