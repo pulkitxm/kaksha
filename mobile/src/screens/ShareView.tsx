@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import {
@@ -273,7 +273,13 @@ export function ShareView({
   const toast = useToast();
   const [teacherId, setTeacherId] = useState<string | null>(filters.teacher[0] ?? null);
   const [exportDark, setExportDark] = useState(appTheme.isDark);
-  const [job, setJob] = useState<{ model: ShareModel; theme: SurfaceTheme } | null>(null);
+  const [job, setJob] = useState<{
+    model: ShareModel;
+    theme: SurfaceTheme;
+    intent: "share" | "preview";
+    fileName: string;
+  } | null>(null);
+  const [preview, setPreview] = useState<{ uri: string; ratio: number } | null>(null);
 
   const exportTheme = exportDark ? THEMES.dark : THEMES.light;
   const classData = useClassDatasets(dataset);
@@ -305,6 +311,10 @@ export function ShareView({
   );
 
   const awaitingClasses = teacherId !== null && classData.loading;
+
+  useEffect(() => {
+    setPreview(null);
+  }, [model, exportTheme]);
 
   async function deliver(uri: string) {
     if (await Sharing.isAvailableAsync()) {
@@ -365,29 +375,89 @@ export function ShareView({
         </Text>
       ) : null}
 
-      <Button
-        label={job ? "Preparing image" : "Share as image"}
-        variant="primary"
-        icon="share-social-outline"
-        busy={job !== null}
-        disabled={awaitingClasses}
-        onPress={() => {
-          setJob({ model, theme: exportTheme });
-        }}
-      />
+      <View style={{ flexDirection: "row", gap: SPACING.sm }}>
+        <View style={{ flex: 1 }}>
+          <Button
+            label={job?.intent === "preview" ? "Rendering" : "Preview image"}
+            icon="eye-outline"
+            busy={job?.intent === "preview"}
+            disabled={awaitingClasses || job !== null}
+            onPress={() => {
+              setJob({
+                model,
+                theme: exportTheme,
+                intent: "preview",
+                fileName: `kaksha-preview-${Date.now().toString(36)}`,
+              });
+            }}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button
+            label={job?.intent === "share" ? "Preparing image" : "Share as image"}
+            variant="primary"
+            icon="share-social-outline"
+            busy={job?.intent === "share"}
+            disabled={awaitingClasses || job !== null}
+            onPress={() => {
+              setJob({
+                model,
+                theme: exportTheme,
+                intent: "share",
+                fileName: `kaksha-${slugify(model.title)}`,
+              });
+            }}
+          />
+        </View>
+      </View>
+
+      {preview ? (
+        <View style={{ gap: SPACING.xs }}>
+          <Text style={{ color: appTheme.fgFaint, fontSize: 11, letterSpacing: 0.8 }}>
+            IMAGE PREVIEW
+          </Text>
+          <Image
+            source={{ uri: preview.uri }}
+            resizeMode="contain"
+            style={{
+              width: "100%",
+              aspectRatio: preview.ratio,
+              borderRadius: RADIUS.md,
+              borderColor: appTheme.line,
+              borderWidth: StyleSheet.hairlineWidth,
+            }}
+          />
+          <Text style={{ color: appTheme.fgMuted, fontSize: 11 }}>
+            The exact file that will be shared
+          </Text>
+        </View>
+      ) : null}
 
       {job ? (
         <ExportSurface
           model={job.model}
           theme={job.theme}
-          fileName={`kaksha-${slugify(model.title)}`}
+          fileName={job.fileName}
           onDone={(uri, problem) => {
+            const intent = job.intent;
             setJob(null);
-            if (uri) {
-              void deliver(uri);
-            } else {
+            if (!uri) {
               toast(problem ?? "Could not export the image", "error");
+              return;
             }
+            if (intent === "share") {
+              void deliver(uri);
+              return;
+            }
+            Image.getSize(
+              uri,
+              (width, height) => {
+                setPreview({ uri, ratio: width / height });
+              },
+              () => {
+                setPreview({ uri, ratio: 3 / 2 });
+              },
+            );
           }}
         />
       ) : null}
