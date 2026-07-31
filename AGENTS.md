@@ -40,7 +40,12 @@ bun run apk:local   # gradle on this machine, needs a JDK and the Android SDK
 ```
 
 `apk:local` prebuilds the native project if it is missing, runs
-`assembleRelease`, and copies the artifact to `mobile/build/`. It checks for the
+`assembleRelease`, and copies the artifact to `mobile/build/`.
+
+Pushing a change under `mobile/` or `core/` to main builds an APK on CI and
+publishes it as a GitHub release. The semantic version comes from
+`mobile/app.json`, so raising it is a normal pull request; the Android version
+code comes from the run number, which always increases. It checks for the
 JDK and SDK first and tells you what to install if either is absent. The
 generated `mobile/android` directory is disposable and is not committed.
 
