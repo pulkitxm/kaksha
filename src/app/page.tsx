@@ -39,19 +39,20 @@ async function Toolbar({ classId }: { classId: string }) {
 
 async function ShareAction({ classId, search }: { classId: string; search: string }) {
   const data = await fetchTimetable(search || toSearchString({ class: classId }));
-  const { filters, filterOptions } = data;
+  const teachers = data.filterOptions.teachers;
 
-  const label =
-    filters.teacher.length === 1
-      ? (filterOptions.teachers.find((t) => t.id === filters.teacher[0])?.name ??
-        data.currentClass.name)
-      : filters.section.length === 1
-        ? `${data.currentClass.name} Section ${
-            filterOptions.sections.find((s) => s.id === filters.section[0])?.name ?? ""
-          }`.trim()
-        : data.currentClass.name;
+  const selected = data.filters.teacher.find((id) =>
+    teachers.some((teacher) => teacher.id === id),
+  );
+  const defaultTeacherId = selected ?? teachers[0]?.id ?? "";
 
-  return <ShareDialog fileLabel={label} />;
+  return (
+    <ShareDialog
+      key={defaultTeacherId}
+      teachers={teachers}
+      defaultTeacherId={defaultTeacherId}
+    />
+  );
 }
 
 async function Filters({ classId, search }: { classId: string; search: string }) {

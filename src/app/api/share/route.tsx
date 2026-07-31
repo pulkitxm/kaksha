@@ -1,16 +1,14 @@
 import { ImageResponse } from "next/og";
 
 import { getTimetable, parseClassId, parseFilters } from "@/lib/query";
-import { buildShareModel, type ShareCell } from "@/lib/share";
+import {
+  buildShareModel,
+  SHARE_THEMES,
+  type ShareCell,
+  type ShareTheme,
+} from "@/lib/share";
 
 export const dynamic = "force-dynamic";
-
-const BG = "#0a0a0a";
-const PANEL = "#141414";
-const LINE = "#262626";
-const FG = "#ededed";
-const MUTED = "#8f8f8f";
-const EMPTY = "#3a3a3a";
 
 const WIDTH = 1200;
 const PAD = 48;
@@ -18,7 +16,19 @@ const PERIOD_COL = 92;
 const CELL_HEIGHT = 44;
 const ROW_PAD = 18;
 
-function CellBlock({ cell, width }: { cell: ShareCell; width: number }) {
+function CellBlock({
+  cell,
+  width,
+  theme,
+  dark,
+}: {
+  cell: ShareCell;
+  width: number;
+  theme: ShareTheme;
+  dark: boolean;
+}) {
+  const accent = dark ? cell.color : cell.deepColor;
+
   return (
     <div
       style={{
@@ -27,8 +37,8 @@ function CellBlock({ cell, width }: { cell: ShareCell; width: number }) {
         width,
         height: 38,
         borderRadius: 8,
-        border: `1px solid ${cell.color}55`,
-        backgroundColor: `${cell.color}1f`,
+        border: `1px solid ${cell.color}${theme.cellBorderAlpha}`,
+        backgroundColor: `${cell.color}${theme.cellBgAlpha}`,
         paddingLeft: 8,
         paddingRight: 8,
         marginBottom: 6,
@@ -42,8 +52,8 @@ function CellBlock({ cell, width }: { cell: ShareCell; width: number }) {
           width: 20,
           height: 20,
           borderRadius: 5,
-          backgroundColor: cell.color,
-          color: "#0a0a0a",
+          backgroundColor: accent,
+          color: theme.badgeText,
           fontSize: 12,
           fontWeight: 700,
           marginRight: 7,
@@ -51,7 +61,7 @@ function CellBlock({ cell, width }: { cell: ShareCell; width: number }) {
       >
         {cell.sectionName}
       </div>
-      <div style={{ display: "flex", fontSize: 15, fontWeight: 600, color: cell.color }}>
+      <div style={{ display: "flex", fontSize: 15, fontWeight: 600, color: accent }}>
         {cell.subjectCode}
       </div>
     </div>
@@ -62,6 +72,8 @@ export async function GET(request: Request) {
   const params = new URL(request.url).searchParams;
   const data = await getTimetable(parseClassId(params), parseFilters(params));
   const model = buildShareModel(data);
+  const dark = params.get("theme") !== "light";
+  const theme = dark ? SHARE_THEMES.dark : SHARE_THEMES.light;
 
   const dayCount = Math.max(model.days.length, 1);
   const gridWidth = WIDTH - PAD * 2;
@@ -91,8 +103,8 @@ export async function GET(request: Request) {
           flexDirection: "column",
           width: WIDTH,
           height,
-          backgroundColor: BG,
-          color: FG,
+          backgroundColor: theme.bg,
+          color: theme.fg,
           paddingTop: PAD,
           paddingBottom: PAD,
           paddingLeft: PAD,
@@ -104,18 +116,18 @@ export async function GET(request: Request) {
             display: "flex",
             justifyContent: "space-between",
             paddingBottom: 22,
-            borderBottom: `1px solid ${LINE}`,
+            borderBottom: `1px solid ${theme.line}`,
           }}
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 44, fontWeight: 700 }}>
               {model.title || "Time Table"}
             </div>
-            <div style={{ display: "flex", fontSize: 20, color: MUTED, marginTop: 10 }}>
+            <div style={{ display: "flex", fontSize: 20, color: theme.muted, marginTop: 10 }}>
               {model.subtitle}
             </div>
             {model.footnote ? (
-              <div style={{ display: "flex", fontSize: 16, color: MUTED, marginTop: 8 }}>
+              <div style={{ display: "flex", fontSize: 16, color: theme.muted, marginTop: 8 }}>
                 {model.footnote}
               </div>
             ) : null}
@@ -127,8 +139,8 @@ export async function GET(request: Request) {
               flexDirection: "column",
               alignItems: "flex-end",
               borderRadius: 12,
-              border: `1px solid ${LINE}`,
-              backgroundColor: PANEL,
+              border: `1px solid ${theme.line}`,
+              backgroundColor: theme.panel,
               paddingTop: 12,
               paddingBottom: 12,
               paddingLeft: 20,
@@ -138,7 +150,7 @@ export async function GET(request: Request) {
             <div style={{ display: "flex", fontSize: 38, fontWeight: 700 }}>
               {String(model.lectures)}
             </div>
-            <div style={{ display: "flex", fontSize: 13, color: MUTED, marginTop: 6 }}>
+            <div style={{ display: "flex", fontSize: 13, color: theme.muted, marginTop: 6 }}>
               LECTURES / WEEK
             </div>
           </div>
@@ -152,7 +164,7 @@ export async function GET(request: Request) {
               alignItems: "center",
               justifyContent: "center",
               fontSize: 22,
-              color: MUTED,
+              color: theme.muted,
             }}
           >
             No lectures match this selection
@@ -165,7 +177,7 @@ export async function GET(request: Request) {
                   display: "flex",
                   width: PERIOD_COL,
                   fontSize: 12,
-                  color: MUTED,
+                  color: theme.muted,
                 }}
               >
                 PERIOD
@@ -178,7 +190,7 @@ export async function GET(request: Request) {
                     width: dayColWidth,
                     fontSize: 16,
                     fontWeight: 600,
-                    color: MUTED,
+                    color: theme.muted,
                   }}
                 >
                   {day.short}
@@ -192,7 +204,7 @@ export async function GET(request: Request) {
                 style={{
                   display: "flex",
                   height: rowHeights[index],
-                  borderTop: `1px solid ${LINE}`,
+                  borderTop: `1px solid ${theme.line}`,
                   paddingTop: 12,
                 }}
               >
@@ -207,7 +219,7 @@ export async function GET(request: Request) {
                     {row.periodLabel}
                   </div>
                   {row.periodName ? (
-                    <div style={{ display: "flex", fontSize: 12, color: MUTED, marginTop: 5 }}>
+                    <div style={{ display: "flex", fontSize: 12, color: theme.muted, marginTop: 5 }}>
                       {row.periodName}
                     </div>
                   ) : null}
@@ -225,13 +237,15 @@ export async function GET(request: Request) {
                       }}
                     >
                       {cells.length === 0 ? (
-                        <div style={{ display: "flex", fontSize: 16, color: EMPTY }}>-</div>
+                        <div style={{ display: "flex", fontSize: 16, color: theme.empty }}>-</div>
                       ) : (
                         cells.map((cell, cellIndex) => (
                           <CellBlock
                             key={`${day.id}-${cellIndex}`}
                             cell={cell}
                             width={cellWidth}
+                            theme={theme}
+                            dark={dark}
                           />
                         ))
                       )}
@@ -248,9 +262,9 @@ export async function GET(request: Request) {
             display: "flex",
             justifyContent: "space-between",
             paddingTop: 18,
-            borderTop: `1px solid ${LINE}`,
+            borderTop: `1px solid ${theme.line}`,
             fontSize: 14,
-            color: MUTED,
+            color: theme.muted,
           }}
         >
           <div style={{ display: "flex" }}>

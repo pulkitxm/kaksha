@@ -1,6 +1,7 @@
 import "server-only";
 
 import { headers } from "next/headers";
+import { cache } from "react";
 
 import type { TimetableResponse } from "./types";
 
@@ -27,14 +28,16 @@ export function toSearchString(
   return search.toString();
 }
 
-export async function fetchTimetable(search: string): Promise<TimetableResponse> {
-  const url = `${await baseUrl()}/api/timetable${search ? `?${search}` : ""}`;
-  const response = await fetch(url, { cache: "no-store" });
+export const fetchTimetable = cache(
+  async (search: string): Promise<TimetableResponse> => {
+    const url = `${await baseUrl()}/api/timetable${search ? `?${search}` : ""}`;
+    const response = await fetch(url, { cache: "no-store" });
 
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Timetable API failed (${response.status}): ${body.slice(0, 200)}`);
-  }
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`Timetable API failed (${response.status}): ${body.slice(0, 200)}`);
+    }
 
-  return (await response.json()) as TimetableResponse;
-}
+    return (await response.json()) as TimetableResponse;
+  },
+);

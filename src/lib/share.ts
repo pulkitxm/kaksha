@@ -15,14 +15,68 @@ export const SHARE_PALETTE: Record<string, string> = {
   slate: "#64748b",
 };
 
-export function shareColor(token: string): string {
-  return SHARE_PALETTE[token] ?? SHARE_PALETTE.slate;
+const SHARE_PALETTE_DEEP: Record<string, string> = {
+  blue: "#1d4ed8",
+  orange: "#c2410c",
+  violet: "#6d28d9",
+  emerald: "#047857",
+  amber: "#b45309",
+  rose: "#be123c",
+  teal: "#0f766e",
+  cyan: "#0e7490",
+  lime: "#4d7c0f",
+  fuchsia: "#a21caf",
+  sky: "#0369a1",
+  slate: "#475569",
+};
+
+export function shareColor(token: string, deep = false): string {
+  const palette = deep ? SHARE_PALETTE_DEEP : SHARE_PALETTE;
+  return palette[token] ?? palette.slate;
 }
+
+export type ShareTheme = {
+  bg: string;
+  panel: string;
+  line: string;
+  fg: string;
+  muted: string;
+  empty: string;
+  badgeText: string;
+  cellBgAlpha: string;
+  cellBorderAlpha: string;
+};
+
+export const SHARE_THEMES: Record<"dark" | "light", ShareTheme> = {
+  dark: {
+    bg: "#0a0a0a",
+    panel: "#141414",
+    line: "#262626",
+    fg: "#ededed",
+    muted: "#8f8f8f",
+    empty: "#3a3a3a",
+    badgeText: "#0a0a0a",
+    cellBgAlpha: "1f",
+    cellBorderAlpha: "55",
+  },
+  light: {
+    bg: "#ffffff",
+    panel: "#fafafa",
+    line: "#e5e5e5",
+    fg: "#0a0a0a",
+    muted: "#666666",
+    empty: "#c4c4c4",
+    badgeText: "#ffffff",
+    cellBgAlpha: "1a",
+    cellBorderAlpha: "4d",
+  },
+};
 
 export type ShareCell = {
   sectionName: string;
   subjectCode: string;
   color: string;
+  deepColor: string;
   teacherName: string;
 };
 
@@ -128,6 +182,7 @@ export function buildShareModel(data: TimetableResponse): ShareModel {
           sectionName: sectionById.get(entry.sectionId) ?? entry.sectionId,
           subjectCode: assignment.subject.code,
           color: shareColor(assignment.subject.color),
+          deepColor: shareColor(assignment.subject.color, true),
           teacherName: assignment.teacher?.name ?? "Unassigned",
         });
       }
