@@ -19,7 +19,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#faf3e3"
       },
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "permissions": ["android.permission.REQUEST_INSTALL_PACKAGES"]
     },
     "ios": {
       "supportsTablet": true,
