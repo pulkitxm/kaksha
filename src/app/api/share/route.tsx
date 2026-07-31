@@ -121,7 +121,7 @@ export async function GET(request: Request) {
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", fontSize: 44, fontWeight: 700 }}>
-              {model.title || "Time Table"}
+              {model.title || "Kaksha"}
             </div>
             <div style={{ display: "flex", fontSize: 20, color: theme.muted, marginTop: 10 }}>
               {model.subtitle}
@@ -270,7 +270,10 @@ export async function GET(request: Request) {
           <div style={{ display: "flex" }}>
             {String(model.slots)} slots · {data.currentClass.name}
           </div>
-          <div style={{ display: "flex" }}>{data.school.session}</div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div style={{ display: "flex", marginRight: 6 }}>Kaksha</div>
+            <div style={{ display: "flex" }}>· {data.school.session}</div>
+          </div>
         </div>
       </div>
     ),

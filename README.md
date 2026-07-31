@@ -1,6 +1,6 @@
-# Time Table
+# Kaksha
 
-Server-rendered timetable manager. All data lives as JSON tables in `data/`, joined by id at
+Server-rendered class timetable manager. All data lives as JSON tables in `data/`, joined by id at
 request time and served through the app's own REST API.
 
 ```bash

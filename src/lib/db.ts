@@ -30,7 +30,7 @@ export const getSchool = cache(
   async (): Promise<School> =>
     readJson<School>("school.json", {
       name: "",
-      title: "Time Table",
+      title: "Kaksha",
       session: "",
       updatedAt: "",
     }),

@@ -12,7 +12,9 @@
   --fg: #0a0a0a;
   --fg-muted: #666666;
   --fg-faint: #8f8f8f;
-  --accent: #0070f3;
+  --accent: #1b4a3a;
+  --brand: #1b4a3a;
+  --brand-gold: #d2952f;
 }
 
 .dark {
@@ -25,7 +27,9 @@
   --fg: #ededed;
   --fg-muted: #a1a1a1;
   --fg-faint: #7a7a7a;
-  --accent: #3291ff;
+  --accent: #4c9b7d;
+  --brand: #4c9b7d;
+  --brand-gold: #e0a94a;
 }
 
 @theme inline {
@@ -39,6 +43,8 @@
   --color-fg-muted: var(--fg-muted);
   --color-fg-faint: var(--fg-faint);
   --color-accent: var(--accent);
+  --color-brand: var(--brand);
+  --color-brand-gold: var(--brand-gold);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Suspense } from "react";
 
 import { FilterBar } from "@/components/FilterBar";
@@ -167,21 +168,16 @@ export default async function Page({
       <header className="no-print sticky top-0 z-30 border-b border-line bg-bg/80 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-fg text-bg">
-              <svg
-                viewBox="0 0 16 16"
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                aria-hidden="true"
-              >
-                <rect x="2" y="3" width="12" height="11" rx="1.5" />
-                <path d="M2 6.5h12M6 6.5v7.5M10 6.5v7.5" />
-              </svg>
-            </span>
+            <Image
+              src="/logo.png"
+              alt=""
+              width={32}
+              height={32}
+              priority
+              className="h-8 w-8 rounded-lg"
+            />
             <div className="leading-tight">
-              <h1 className="text-sm font-semibold">Time Table</h1>
+              <h1 className="text-sm font-semibold">Kaksha</h1>
               <p className="text-xs text-fg-faint">Session 2025-26</p>
             </div>
           </div>
