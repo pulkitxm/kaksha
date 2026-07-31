@@ -28,7 +28,9 @@
     "db:studio": "bun run --filter @kaksha/server db:studio",
     "mobile:install": "bun run --filter @kaksha/core build && cd mobile && bun install",
     "mobile:typecheck": "cd mobile && bun run typecheck",
-    "mobile:bundle": "cd mobile && bun run bundle:android"
+    "mobile:bundle": "cd mobile && bun run bundle:android",
+    "apk": "cd mobile && bun run apk",
+    "apk:local": "cd mobile && bun run apk:local"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
