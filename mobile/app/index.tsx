@@ -136,6 +136,7 @@ export default function Home() {
 
       <FilterSheet
         visible={filtersOpen}
+        dataset={dataset}
         options={options}
         filters={store.filters}
         onApply={store.setFilters}
