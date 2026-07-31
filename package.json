@@ -25,7 +25,10 @@
     "db:generate": "npm run db:generate -w @kaksha/server",
     "db:migrate": "npm run db:migrate -w @kaksha/server",
     "db:seed": "npm run db:seed -w @kaksha/server",
-    "db:studio": "npm run db:studio -w @kaksha/server"
+    "db:studio": "npm run db:studio -w @kaksha/server",
+    "mobile:install": "npm run build -w @kaksha/core && npm --prefix mobile install",
+    "mobile:typecheck": "npm --prefix mobile run typecheck",
+    "mobile:bundle": "npm --prefix mobile run bundle:android"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",

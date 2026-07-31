@@ -12,3 +12,5 @@ coverage/
 .DS_Store
 *.tsbuildinfo
 .vercel
+mobile/node_modules/
+mobile/.expo/
