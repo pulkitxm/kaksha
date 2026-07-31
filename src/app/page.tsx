@@ -2,7 +2,9 @@ import { Suspense } from "react";
 
 import { FilterBar } from "@/components/FilterBar";
 import { ListView } from "@/components/ListView";
+import { ShareDialog } from "@/components/ShareDialog";
 import { DayLegend, Legend, StatCards } from "@/components/StatCards";
+import { TeacherAvailability } from "@/components/TeacherAvailability";
 import { TeacherLoadTable } from "@/components/TeacherLoadTable";
 import { TimetableGrid } from "@/components/TimetableGrid";
 import { ClassSwitcher, PrintButton, ThemeToggle, ViewTabs } from "@/components/Toolbar";
@@ -33,6 +35,23 @@ async function Toolbar({ classId }: { classId: string }) {
       </span>
     </div>
   );
+}
+
+async function ShareAction({ classId, search }: { classId: string; search: string }) {
+  const data = await fetchTimetable(search || toSearchString({ class: classId }));
+  const { filters, filterOptions } = data;
+
+  const label =
+    filters.teacher.length === 1
+      ? (filterOptions.teachers.find((t) => t.id === filters.teacher[0])?.name ??
+        data.currentClass.name)
+      : filters.section.length === 1
+        ? `${data.currentClass.name} Section ${
+            filterOptions.sections.find((s) => s.id === filters.section[0])?.name ?? ""
+          }`.trim()
+        : data.currentClass.name;
+
+  return <ShareDialog fileLabel={label} />;
 }
 
 async function Filters({ classId, search }: { classId: string; search: string }) {
@@ -90,12 +109,19 @@ async function Content({ search, view }: { search: string; view: string }) {
       ) : null}
 
       {view === "list" ? (
-        <ListView
-          entries={data.entries}
-          sections={data.sections}
-          periods={data.periods}
-          days={data.days}
-        />
+        <div className="space-y-4">
+          <TeacherAvailability
+            rows={data.teacherAvailability}
+            days={data.days}
+            periodsPerDay={data.periodsPerDay}
+          />
+          <ListView
+            entries={data.entries}
+            sections={data.sections}
+            periods={data.periods}
+            days={data.days}
+          />
+        </div>
       ) : view === "teachers" ? (
         <TeacherLoadTable rows={data.teacherLoad} days={data.days} sections={data.sections} />
       ) : (
@@ -164,6 +190,9 @@ export default async function Page({
               <Toolbar classId={classId} />
             </Suspense>
             <ViewTabs current={view} />
+            <Suspense fallback={<div className="skeleton h-9 w-20" aria-hidden="true" />}>
+              <ShareAction classId={classId} search={search} />
+            </Suspense>
             <PrintButton />
             <ThemeToggle />
           </div>

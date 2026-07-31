@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { swatch } from "@/lib/colors";
 import type { FilterOptions, Filters } from "@/lib/types";
@@ -25,8 +25,13 @@ export function FilterBar({ options, filters }: Props) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState(filters.q);
+  const selfEdit = useRef(false);
 
   useEffect(() => {
+    if (selfEdit.current) {
+      selfEdit.current = false;
+      return;
+    }
     setSearch(filters.q);
   }, [filters.q]);
 
@@ -47,17 +52,20 @@ export function FilterBar({ options, filters }: Props) {
   }
 
   useEffect(() => {
+    const next = search.trim();
     const current = searchParams.get("q") ?? "";
-    if (search === current) return;
+    if (next.toLowerCase() === current.toLowerCase()) return;
+
     const timer = setTimeout(() => {
+      selfEdit.current = true;
       push((params) => {
-        if (search.trim()) params.set("q", search.trim());
+        if (next) params.set("q", next);
         else params.delete("q");
       });
-    }, 250);
+    }, 300);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+  }, [search, searchParams]);
 
   const teacherOptions: Option[] = options.teachers.map((teacher) => ({
     value: teacher.id,

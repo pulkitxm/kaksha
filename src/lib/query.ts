@@ -20,6 +20,7 @@ import type {
   ResolvedSection,
   Stats,
   Subject,
+  TeacherAvailabilityRow,
   Teacher,
   TeacherLoadRow,
   TimetableResponse,
@@ -223,6 +224,57 @@ function buildTeacherLoad(
   return [...rows.values()].sort(
     (a, b) => b.lectures - a.lectures || a.teacher.localeCompare(b.teacher),
   );
+}
+
+function buildTeacherAvailability(
+  allEntries: ResolvedEntry[],
+  days: TimetableResponse["days"],
+  periodsPerDay: number,
+  onlyTeacherIds: string[],
+): TeacherAvailabilityRow[] {
+  const busy = new Map<string, { name: string; byDay: Map<number, Set<number>> }>();
+
+  for (const entry of allEntries) {
+    for (const assignment of entry.assignments) {
+      const teacher = assignment.teacher;
+      if (!teacher) continue;
+
+      let record = busy.get(teacher.id);
+      if (!record) {
+        record = { name: teacher.name, byDay: new Map() };
+        busy.set(teacher.id, record);
+      }
+      for (const dayId of entry.dayIds) {
+        const slots = record.byDay.get(dayId) ?? new Set<number>();
+        slots.add(entry.periodId);
+        record.byDay.set(dayId, slots);
+      }
+    }
+  }
+
+  const wanted = new Set(onlyTeacherIds);
+
+  return [...busy.entries()]
+    .filter(([teacherId]) => wanted.size === 0 || wanted.has(teacherId))
+    .map(([teacherId, record]) => {
+      const perDay = days.map((day) => {
+        const used = record.byDay.get(day.id)?.size ?? 0;
+        return {
+          dayId: day.id,
+          busy: used,
+          free: Math.max(0, periodsPerDay - used),
+        };
+      });
+
+      return {
+        teacherId,
+        teacher: record.name,
+        perDay,
+        totalBusy: perDay.reduce((sum, day) => sum + day.busy, 0),
+        totalFree: perDay.reduce((sum, day) => sum + day.free, 0),
+      };
+    })
+    .sort((a, b) => b.totalBusy - a.totalBusy || a.teacher.localeCompare(b.teacher));
 }
 
 function buildFilterOptions(
@@ -467,6 +519,13 @@ export async function getTimetable(
     entries: resolved,
     stats,
     teacherLoad: buildTeacherLoad(resolved, filters),
+    teacherAvailability: buildTeacherAvailability(
+      resolved,
+      days,
+      currentClass.periods.length,
+      filters.teacher,
+    ),
+    periodsPerDay: currentClass.periods.length,
     filters,
     filterOptions: buildFilterOptions(
       resolved,

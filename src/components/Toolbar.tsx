@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useSyncExternalStore, useTransition } from "react";
 
 import type { ClassSummary } from "@/lib/types";
 
@@ -107,18 +107,24 @@ export function ViewTabs({ current }: { current: string }) {
   );
 }
 
-export function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
+function subscribeToTheme(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class"],
+  });
+  return () => observer.disconnect();
+}
 
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-    setMounted(true);
-  }, []);
+export function ThemeToggle() {
+  const dark = useSyncExternalStore(
+    subscribeToTheme,
+    () => document.documentElement.classList.contains("dark"),
+    () => false,
+  );
 
   function toggle() {
     const next = !dark;
-    setDark(next);
     document.documentElement.classList.toggle("dark", next);
     try {
       localStorage.setItem("tt-theme", next ? "dark" : "light");
@@ -132,7 +138,7 @@ export function ThemeToggle() {
       aria-label="Toggle theme"
       className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-panel text-fg-muted transition-colors hover:border-line-strong hover:text-fg"
     >
-      {mounted && dark ? (
+      {dark ? (
         <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
           <circle cx="8" cy="8" r="3.2" />
           <path d="M8 1v1.6M8 13.4V15M15 8h-1.6M2.6 8H1M12.9 3.1l-1.1 1.1M4.2 11.8l-1.1 1.1M12.9 12.9l-1.1-1.1M4.2 4.2L3.1 3.1" strokeLinecap="round" />

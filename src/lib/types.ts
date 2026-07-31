@@ -123,6 +123,14 @@ export type TeacherLoadRow = {
   byDay: Record<number, number>;
 };
 
+export type TeacherAvailabilityRow = {
+  teacherId: string;
+  teacher: string;
+  perDay: { dayId: number; busy: number; free: number }[];
+  totalBusy: number;
+  totalFree: number;
+};
+
 export type Stats = {
   totalEntries: number;
   matchedEntries: number;
@@ -170,6 +178,8 @@ export type TimetableResponse = {
   entries: ResolvedEntry[];
   stats: Stats;
   teacherLoad: TeacherLoadRow[];
+  teacherAvailability: TeacherAvailabilityRow[];
+  periodsPerDay: number;
   filters: Filters;
   filterOptions: FilterOptions;
   issues: IntegrityIssue[];
