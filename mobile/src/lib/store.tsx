@@ -121,6 +121,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(
     async (silent: boolean): Promise<ReloadResult> => {
+      const startedFor = classRef.current;
       setSyncing(true);
       if (!silent) {
         setStatus(rawRef.current ? "ready" : "loading");
@@ -128,11 +129,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       try {
         const flushed = await flushQueue();
+        if (classRef.current !== startedFor) return "synced";
         if (!flushed) {
           setOffline(true);
           return "offline";
         }
-        const fetched = await fetchRawDataset(classRef.current);
+        const fetched = await fetchRawDataset(startedFor);
+        if (classRef.current !== startedFor) return "synced";
         commitRaw(fetched, true);
         setOffline(false);
         setLastSyncedAt(new Date().toISOString());
@@ -140,6 +143,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setError(null);
         return "synced";
       } catch (cause) {
+        if (classRef.current !== startedFor) return "offline";
         setOffline(true);
         if (!rawRef.current) {
           setError(cause instanceof Error ? cause.message : "Could not reach the server");
