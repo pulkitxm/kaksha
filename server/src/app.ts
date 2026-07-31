@@ -6,6 +6,7 @@ import { getEnv } from "./env.js";
 import { errorHandler, HttpError } from "./http.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { healthRouter } from "./routes/health.js";
+import { mutationRouter } from "./routes/mutations.js";
 import { timetableRouter } from "./routes/timetable.js";
 
 export function createApp(): Express {
@@ -25,6 +26,7 @@ export function createApp(): Express {
   app.use("/api", healthRouter);
   app.use("/api", timetableRouter);
   app.use("/api", catalogRouter);
+  app.use("/api", mutationRouter);
 
   app.get("/", (_request, response) => {
     response.json({ service: "kaksha-server", docs: "/api/health" });
