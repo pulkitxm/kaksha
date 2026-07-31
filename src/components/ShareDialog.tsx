@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import {
   useEffect,
   useMemo,
@@ -43,11 +42,12 @@ function subscribeToTheme(onChange: () => void) {
 export function ShareDialog({
   teachers,
   defaultTeacherId,
+  search,
 }: {
   teachers: TeacherOption[];
   defaultTeacherId: string;
+  search: string;
 }) {
-  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [teacherId, setTeacherId] = useState(defaultTeacherId);
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
@@ -62,15 +62,14 @@ export function ShareDialog({
     () => true,
   );
 
-  const query = searchParams.toString();
   const imageUrl = useMemo(() => {
-    const params = new URLSearchParams(query);
+    const params = new URLSearchParams(search);
     params.delete("view");
     params.delete("teacher");
     if (teacherId) params.set("teacher", teacherId);
     params.set("theme", dark ? "dark" : "light");
     return `/api/share?${params.toString()}`;
-  }, [query, teacherId, dark]);
+  }, [search, teacherId, dark]);
 
   const loaded = loadedUrl === imageUrl;
   const teacherName =

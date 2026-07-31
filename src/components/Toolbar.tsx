@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSyncExternalStore, useTransition } from "react";
 
-import type { ClassSummary } from "@/lib/types";
+import type { ClassSummary, TimetableView } from "@/lib/types";
 
 function useParamSetter() {
   const router = useRouter();
@@ -69,15 +69,19 @@ export function ClassSwitcher({
   );
 }
 
-const VIEWS = [
+const VIEWS: { id: TimetableView; label: string }[] = [
   { id: "grid", label: "Grid" },
   { id: "list", label: "List" },
   { id: "teachers", label: "Teachers" },
-] as const;
+];
 
-export function ViewTabs({ current }: { current: string }) {
-  const { setParam } = useParamSetter();
-
+export function ViewTabs({
+  current,
+  onChange,
+}: {
+  current: TimetableView;
+  onChange: (next: TimetableView) => void;
+}) {
   return (
     <div
       role="tablist"
@@ -92,7 +96,7 @@ export function ViewTabs({ current }: { current: string }) {
             role="tab"
             aria-selected={active}
             type="button"
-            onClick={() => setParam("view", view.id === "grid" ? null : view.id)}
+            onClick={() => onChange(view.id)}
             className={`rounded-md px-3 py-1 text-sm transition-colors ${
               active
                 ? "bg-fg text-bg"

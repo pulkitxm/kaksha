@@ -165,6 +165,33 @@ export type IntegrityIssue = {
   message: string;
 };
 
+export type TimetableView = "grid" | "list" | "teachers";
+
+export type RawDataset = {
+  school: School;
+  classes: ClassSummary[];
+  currentClass: ClassRecord;
+  days: Day[];
+  sections: Section[];
+  subjects: Subject[];
+  teachers: Teacher[];
+  entries: Entry[];
+};
+
+export type ResolvedDataset = {
+  school: School;
+  classId: string;
+  classes: ClassSummary[];
+  currentClass: ClassRecord;
+  days: Day[];
+  periods: Period[];
+  sections: ResolvedSection[];
+  subjects: Subject[];
+  teachers: Teacher[];
+  entries: ResolvedEntry[];
+  issues: IntegrityIssue[];
+};
+
 export type TimetableResponse = {
   school: School;
   classId: string;

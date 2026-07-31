@@ -1,7 +1,6 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 
 import { swatch } from "@/lib/colors";
 import type { FilterOptions, Filters } from "@/lib/types";
@@ -11,6 +10,7 @@ import { MultiSelect, type Option } from "./MultiSelect";
 type Props = {
   options: FilterOptions;
   filters: Filters;
+  onChange: (next: Filters) => void;
 };
 
 type ChipDescriptor = {
@@ -19,53 +19,24 @@ type ChipDescriptor = {
   label: string;
 };
 
-export function FilterBar({ options, filters }: Props) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+export function FilterBar({ options, filters, onChange }: Props) {
   const [search, setSearch] = useState(filters.q);
-  const selfEdit = useRef(false);
 
   useEffect(() => {
-    if (selfEdit.current) {
-      selfEdit.current = false;
-      return;
-    }
-    setSearch(filters.q);
-  }, [filters.q]);
-
-  function push(mutate: (params: URLSearchParams) => void) {
-    const params = new URLSearchParams(searchParams.toString());
-    mutate(params);
-    const query = params.toString();
-    startTransition(() => {
-      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-    });
-  }
-
-  function setList(key: string, values: string[]) {
-    push((params) => {
-      params.delete(key);
-      if (values.length) params.set(key, values.join(","));
-    });
-  }
-
-  useEffect(() => {
-    const next = search.trim();
-    const current = searchParams.get("q") ?? "";
-    if (next.toLowerCase() === current.toLowerCase()) return;
-
-    const timer = setTimeout(() => {
-      selfEdit.current = true;
-      push((params) => {
-        if (next) params.set("q", next);
-        else params.delete("q");
-      });
-    }, 300);
+    const next = search.trim().toLowerCase();
+    if (next === filters.q) return;
+    const timer = setTimeout(() => onChange({ ...filters, q: next }), 200);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, searchParams]);
+  }, [search]);
+
+  function setList(key: "teacher" | "subject" | "section" | "group", values: string[]) {
+    onChange({ ...filters, [key]: values });
+  }
+
+  function setNumbers(key: "day" | "period", values: string[]) {
+    onChange({ ...filters, [key]: values.map(Number).filter(Number.isFinite) });
+  }
 
   const teacherOptions: Option[] = options.teachers.map((teacher) => ({
     value: teacher.id,
@@ -146,19 +117,27 @@ export function FilterBar({ options, filters }: Props) {
   const hasAny = chips.length > 0 || filters.q.length > 0;
 
   function removeChip(chip: ChipDescriptor) {
-    const current = (filters[chip.key] as (string | number)[]).map(String);
-    setList(
-      chip.key,
-      current.filter((value) => value !== chip.value),
-    );
+    if (chip.key === "day" || chip.key === "period") {
+      const target = Number(chip.value);
+      onChange({ ...filters, [chip.key]: filters[chip.key].filter((v) => v !== target) });
+      return;
+    }
+    onChange({
+      ...filters,
+      [chip.key]: filters[chip.key].filter((value) => value !== chip.value),
+    });
   }
 
   function clearAll() {
     setSearch("");
-    push((params) => {
-      for (const key of ["teacher", "subject", "section", "day", "period", "group", "q"]) {
-        params.delete(key);
-      }
+    onChange({
+      teacher: [],
+      subject: [],
+      section: [],
+      group: [],
+      day: [],
+      period: [],
+      q: "",
     });
   }
 
@@ -222,13 +201,13 @@ export function FilterBar({ options, filters }: Props) {
           label="Day"
           options={dayOptions}
           selected={filters.day.map(String)}
-          onChange={(next) => setList("day", next)}
+          onChange={(next) => setNumbers("day", next)}
         />
         <MultiSelect
           label="Period"
           options={periodOptions}
           selected={filters.period.map(String)}
-          onChange={(next) => setList("period", next)}
+          onChange={(next) => setNumbers("period", next)}
         />
         {groupOptions.length > 1 ? (
           <MultiSelect
@@ -239,12 +218,6 @@ export function FilterBar({ options, filters }: Props) {
           />
         ) : null}
 
-        {isPending ? (
-          <span
-            className="h-4 w-4 animate-spin rounded-full border-2 border-line-strong border-t-fg"
-            aria-label="Applying filters"
-          />
-        ) : null}
       </div>
 
       {hasAny ? (
