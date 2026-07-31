@@ -23,7 +23,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Build core
-        run: npm run build -w @kaksha/core
+      - name: Build workspaces
+        run: npm run build
       - name: Check for unused files, exports and dependencies
         run: npm run dead-code

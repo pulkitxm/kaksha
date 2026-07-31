@@ -23,8 +23,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Build core types
-        run: npm run build -w @kaksha/core
+      - name: Build workspace types
+        run: npm run build
       - name: ESLint
         run: npm run lint
       - name: Prettier

@@ -23,7 +23,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Build core types
-        run: npm run build -w @kaksha/core
+      - name: Build workspace types
+        run: npm run build
       - name: Type-check every workspace
         run: npm run typecheck

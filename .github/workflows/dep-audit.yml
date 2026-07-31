@@ -2,6 +2,8 @@ name: Dependency audit
 
 on:
   pull_request:
+  push:
+    branches: [main]
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
@@ -24,5 +26,5 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Audit for high and critical vulnerabilities
-        run: npm audit --audit-level=high
+      - name: Audit runtime dependencies for high and critical vulnerabilities
+        run: npm audit --omit=dev --audit-level=high

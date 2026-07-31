@@ -2,16 +2,16 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "workspaces": {
     ".": {
-      "entry": ["scripts/*.mjs"],
-      "project": ["scripts/**/*.mjs"]
+      "entry": ["scripts/*.mjs", "api/index.ts"],
+      "project": ["scripts/**/*.mjs", "api/**/*.ts"]
     },
     "core": {
       "entry": ["src/index.ts"],
       "project": ["src/**/*.ts"]
     },
     "server": {
-      "entry": ["api/index.ts"],
-      "project": ["src/**/*.ts", "api/**/*.ts", "scripts/**/*.ts"]
+      "entry": ["src/index.ts", "src/server.ts", "scripts/seed.ts", "drizzle.config.ts"],
+      "project": ["src/**/*.ts", "scripts/**/*.ts"]
     }
   },
   "ignoreDependencies": []
