@@ -26,7 +26,7 @@ const configured =
 const API_URL =
   typeof configured === "string" && configured.length > 0
     ? configured.replace(/\/$/, "")
-    : "https://kaksha-ppulkitxm.vercel.app";
+    : "https://kaksha.pulkit.page";
 
 export class ApiError extends Error {
   readonly status: number;
