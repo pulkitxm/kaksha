@@ -7,6 +7,8 @@ import { errorHandler, HttpError } from "./http.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { healthRouter } from "./routes/health.js";
 import { mutationRouter } from "./routes/mutations.js";
+import { noteRouter } from "./routes/notes.js";
+import { recordRouter } from "./routes/records.js";
 import { timetableRouter } from "./routes/timetable.js";
 
 export function createApp(): Express {
@@ -27,6 +29,8 @@ export function createApp(): Express {
   app.use("/api", timetableRouter);
   app.use("/api", catalogRouter);
   app.use("/api", mutationRouter);
+  app.use("/api", recordRouter);
+  app.use("/api", noteRouter);
 
   app.get("/", (_request, response) => {
     response.json({ service: "kaksha-server", docs: "/api/health" });

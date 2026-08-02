@@ -163,6 +163,21 @@ export const entryAssignments = pgTable(
   ],
 );
 
+export const notes = pgTable(
+  "notes",
+  {
+    id: text("id").primaryKey(),
+    classId: text("class_id").references(() => classes.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    html: text("html").notNull().default(""),
+    preview: text("preview").notNull().default(""),
+    pinned: boolean("pinned").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("notes_class_idx").on(table.classId)],
+);
+
 export const classesRelations = relations(classes, ({ many }) => ({
   periods: many(periods),
   sections: many(sections),
