@@ -21,6 +21,7 @@ type Props = {
   icon?: IconName;
   destructive?: boolean;
   busy?: boolean;
+  blocked?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -33,6 +34,7 @@ export function ConfirmDialog({
   icon,
   destructive,
   busy,
+  blocked,
   onConfirm,
   onCancel,
 }: Props) {
@@ -167,6 +169,7 @@ export function ConfirmDialog({
                 label={confirmLabel}
                 variant={destructive ? "danger" : "primary"}
                 busy={busy}
+                disabled={blocked}
                 onPress={onConfirm}
               />
             </View>
