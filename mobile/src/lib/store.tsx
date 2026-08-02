@@ -84,6 +84,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const dbRef = useRef<Database | null>(null);
   const etagRef = useRef<string | null>(null);
   const queueRef = useRef<LocalOp[]>([]);
+  const inFlight = useRef<Promise<SyncResult> | null>(null);
 
   const commitDb = useCallback((next: Database) => {
     dbRef.current = next;
@@ -126,7 +127,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return true;
   }, [commitQueue]);
 
-  const syncNow = useCallback(async (): Promise<SyncResult> => {
+  const runSync = useCallback(async (): Promise<SyncResult> => {
     setSyncing(true);
     try {
       if (!(await flushQueue())) {
@@ -163,6 +164,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setSyncing(false);
     }
   }, [commitDb, flushQueue]);
+
+  const syncNow = useCallback((): Promise<SyncResult> => {
+    inFlight.current ??= runSync().finally(() => {
+      inFlight.current = null;
+    });
+    return inFlight.current;
+  }, [runSync]);
 
   useEffect(() => {
     let cancelled = false;
