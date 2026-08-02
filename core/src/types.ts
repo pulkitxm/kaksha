@@ -93,6 +93,17 @@ export type ResolvedEntry = {
   lectures: number;
 };
 
+export type Note = {
+  id: string;
+  classId: string | null;
+  title: string;
+  html: string;
+  preview: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Filters = {
   teacher: string[];
   subject: string[];
