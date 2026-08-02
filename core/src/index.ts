@@ -1,5 +1,6 @@
 export * from "./clashes.js";
 export * from "./colors.js";
+export * from "./database.js";
 export * from "./derive.js";
 export * from "./format.js";
 export * from "./mutations.js";
