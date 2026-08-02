@@ -2,7 +2,13 @@ import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { labelForIndex, type ResolvedDataset, type ResolvedSection } from "@kaksha/core";
+import {
+  countMergeOverlaps,
+  labelForIndex,
+  pluralize,
+  type ResolvedDataset,
+  type ResolvedSection,
+} from "@kaksha/core";
 
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { SelectField } from "../components/Select";
@@ -41,6 +47,11 @@ export function SectionsView({ dataset }: { dataset: ResolvedDataset }) {
   const [pending, setPending] = useState<Pending>(null);
   const [mergeSource, setMergeSource] = useState<string | null>(null);
   const [mergeTarget, setMergeTarget] = useState<string | null>(null);
+
+  const mergeOverlaps =
+    mergeSource && mergeTarget
+      ? countMergeOverlaps(dataset.entries, mergeSource, mergeTarget)
+      : 0;
 
   const counts = useMemo(() => {
     const totals = new Map<string, { slots: number; lectures: number }>();
@@ -413,7 +424,11 @@ export function SectionsView({ dataset }: { dataset: ResolvedDataset }) {
         title={`Merge ${nameById.get(mergeSource ?? "") ?? "?"} into ${
           nameById.get(mergeTarget ?? "") ?? "?"
         }?`}
-        message="All its lectures move over, the section is removed and the rest are relabelled. This cannot be undone."
+        message={
+          mergeOverlaps > 0
+            ? `Both sections teach at the same time, so ${pluralize(mergeOverlaps, "slot")} would end up holding two lectures at once. All the lectures move over, the section is removed and the rest are relabelled. This cannot be undone.`
+            : "All its lectures move over, the section is removed and the rest are relabelled. This cannot be undone."
+        }
         confirmLabel="Merge"
         icon="git-merge-outline"
         destructive

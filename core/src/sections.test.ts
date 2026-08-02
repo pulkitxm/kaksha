@@ -1,6 +1,11 @@
 import { describe, expect, it } from "bun:test";
 
-import { labelForIndex, planMerge, relabelSections } from "./sections.js";
+import {
+  countMergeOverlaps,
+  labelForIndex,
+  planMerge,
+  relabelSections,
+} from "./sections.js";
 
 const sections = [
   { id: "sec_6_a", name: "A", order: 0 },
@@ -57,5 +62,42 @@ describe("planMerge", () => {
 
   it("rejects unknown sections", () => {
     expect(() => planMerge(sections, "sec_6_z", "sec_6_a")).toThrow("Unknown section");
+  });
+});
+
+describe("countMergeOverlaps", () => {
+  const entry = (id: string, sectionId: string, periodId: number, dayIds: number[]) => ({
+    id,
+    classId: "6",
+    sectionId,
+    periodId,
+    dayIds,
+    note: null,
+    assignments: [],
+    matched: true,
+    lectures: dayIds.length,
+  });
+
+  it("counts the slots that would end up holding two lectures", () => {
+    const entries = [
+      entry("a1", "sec_6_a", 1, [1, 2]),
+      entry("a2", "sec_6_a", 2, [1]),
+      entry("b1", "sec_6_b", 1, [2, 3]),
+      entry("b2", "sec_6_b", 2, [1]),
+    ];
+
+    expect(countMergeOverlaps(entries, "sec_6_a", "sec_6_b")).toBe(2);
+  });
+
+  it("is quiet when the two sections never teach at the same time", () => {
+    const entries = [entry("a1", "sec_6_a", 1, [1]), entry("b1", "sec_6_b", 2, [1])];
+
+    expect(countMergeOverlaps(entries, "sec_6_a", "sec_6_b")).toBe(0);
+  });
+
+  it("ignores the other sections entirely", () => {
+    const entries = [entry("a1", "sec_6_a", 1, [1]), entry("c1", "sec_6_c", 1, [1])];
+
+    expect(countMergeOverlaps(entries, "sec_6_a", "sec_6_b")).toBe(0);
   });
 });
