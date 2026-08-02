@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { Text, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 
+import { ConfirmDialog } from "../components/ConfirmDialog";
 import { useToast } from "../components/Toast";
 import { UpdateCard } from "../components/UpdateCard";
 import { Button, Card, Chip, ScreenHeading, type IconName } from "../components/ui";
+import { disconnectDevice } from "../lib/access";
 import { useLog } from "../lib/log";
 import { useStore } from "../lib/store";
 import { SPACING, useTheme, useThemeMode, type ThemeMode } from "../lib/theme";
@@ -33,6 +36,7 @@ export function SettingsView() {
   const appUpdate = useAppUpdate();
   const { sync } = useStore();
   const entries = useLog();
+  const [disconnecting, setDisconnecting] = useState(false);
 
   const version = Constants.expoConfig?.version ?? "unknown";
   const buildCode = Constants.expoConfig?.android?.versionCode;
@@ -124,8 +128,43 @@ export function SettingsView() {
           />
         </Card>
 
+        <Card style={{ gap: SPACING.md }}>
+          <SectionLabel text="This device" />
+          <Text style={{ color: theme.fgMuted, fontSize: 13 }}>
+            Connected to Kaksha with the setup code. Disconnecting removes it and asks for
+            the code again.
+          </Text>
+          <Button
+            label="Disconnect this device"
+            variant="danger"
+            icon="log-out-outline"
+            onPress={() => {
+              setDisconnecting(true);
+            }}
+          />
+        </Card>
+
         <UpdateCard state={appUpdate} />
       </View>
+
+      <ConfirmDialog
+        visible={disconnecting}
+        title="Disconnect this device?"
+        message={
+          sync.pending > 0
+            ? `${String(sync.pending)} changes have not reached the server yet and will be lost. You will need the setup code to connect again.`
+            : "You will need the setup code to connect again."
+        }
+        confirmLabel="Disconnect"
+        destructive
+        onConfirm={() => {
+          setDisconnecting(false);
+          disconnectDevice();
+        }}
+        onCancel={() => {
+          setDisconnecting(false);
+        }}
+      />
     </View>
   );
 }

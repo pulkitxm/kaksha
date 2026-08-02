@@ -62,10 +62,18 @@ export const log = {
   },
 };
 
+let restored = false;
+
 export async function restoreLog(): Promise<void> {
+  if (restored) return;
+  restored = true;
   const cached = await readJson<LogEntry[]>(LOG_KEY);
-  if (!cached || entries.length > 0) return;
-  entries = cached.slice(0, LIMIT);
+  if (!cached) return;
+  const known = new Set(entries.map((entry) => entry.id));
+  entries = [...entries, ...cached.filter((entry) => !known.has(entry.id))].slice(
+    0,
+    LIMIT,
+  );
   emit();
 }
 

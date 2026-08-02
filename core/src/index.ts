@@ -4,6 +4,7 @@ export * from "./database.js";
 export * from "./derive.js";
 export * from "./format.js";
 export * from "./mutations.js";
+export * from "./protocol.js";
 export * from "./schemas.js";
 export * from "./sections.js";
 export * from "./share.js";

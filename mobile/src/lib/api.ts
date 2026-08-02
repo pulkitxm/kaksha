@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import {
+  ACCESS_HEADER,
   databaseSchema,
   noteSchema,
   type CreateClassInput,
@@ -18,15 +19,21 @@ import {
   type UpdateTeacherInput,
 } from "@kaksha/core";
 
+import { accessCode, reportAccessRejected } from "./access";
 import { type EntryPatch, type LocalOp } from "./local";
 
-const configured =
-  process.env.EXPO_PUBLIC_API_URL ?? Constants.expoConfig?.extra?.["apiUrl"];
+const FALLBACK_API_URL = "https://kaksha.pulkit.page";
 
-const API_URL =
-  typeof configured === "string" && configured.length > 0
-    ? configured.replace(/\/$/, "")
-    : "https://kaksha-ppulkitxm.vercel.app";
+function usable(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+const candidates = [
+  process.env.EXPO_PUBLIC_API_URL,
+  Constants.expoConfig?.extra?.["apiUrl"],
+];
+
+const API_URL = (candidates.find(usable) ?? FALLBACK_API_URL).trim().replace(/\/+$/, "");
 
 export class ApiError extends Error {
   readonly status: number;
@@ -41,29 +48,46 @@ export class ApiError extends Error {
 const REQUEST_TIMEOUT_MS = 12000;
 const SNAPSHOT_TIMEOUT_MS = 30000;
 
-async function send(
-  path: string,
-  init: RequestInit | undefined,
-  timeoutMs: number,
-): Promise<Response> {
+type SendOptions = { init?: RequestInit; timeoutMs?: number; probeWith?: string };
+
+async function send(path: string, options: SendOptions = {}): Promise<Response> {
+  const { init, timeoutMs = REQUEST_TIMEOUT_MS, probeWith } = options;
+  const code = probeWith ?? accessCode();
+
   const controller = new AbortController();
   const timer = setTimeout(() => {
     controller.abort();
   }, timeoutMs);
 
   try {
-    return await fetch(`${API_URL}${path}`, {
+    const response = await fetch(`${API_URL}${path}`, {
       ...init,
       signal: controller.signal,
-      headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
+      headers: {
+        "content-type": "application/json",
+        ...(code ? { [ACCESS_HEADER]: code } : {}),
+        ...(init?.headers ?? {}),
+      },
     });
+
+    if (response.status === 401 && !probeWith) reportAccessRejected();
+    return response;
   } finally {
     clearTimeout(timer);
   }
 }
 
+export async function checkAccessCode(code: string): Promise<boolean> {
+  const response = await send("/api/access", { probeWith: code });
+  if (response.status === 401) return false;
+  if (!response.ok) {
+    throw new ApiError(response.status, `${String(response.status)} /api/access`);
+  }
+  return true;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await send(path, init, REQUEST_TIMEOUT_MS);
+  const response = await send(path, { init });
 
   if (!response.ok) {
     const body = (await response.text()).slice(0, 300);
@@ -77,11 +101,10 @@ export type SnapshotResult =
   { kind: "unchanged" } | { kind: "fresh"; db: Database; etag: string | null };
 
 export async function fetchSnapshot(etag: string | null): Promise<SnapshotResult> {
-  const response = await send(
-    "/api/snapshot",
-    etag ? { headers: { "if-none-match": etag } } : undefined,
-    SNAPSHOT_TIMEOUT_MS,
-  );
+  const response = await send("/api/snapshot", {
+    init: etag ? { headers: { "if-none-match": etag } } : undefined,
+    timeoutMs: SNAPSHOT_TIMEOUT_MS,
+  });
 
   if (response.status === 304) return { kind: "unchanged" };
 
