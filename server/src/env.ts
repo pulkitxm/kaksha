@@ -13,7 +13,7 @@ const envSchema = z.object({
     .string()
     .min(
       MIN_ACCESS_CODE_LENGTH,
-      `ACCESS_CODE is required and must be at least ${String(MIN_ACCESS_CODE_LENGTH)} characters. Without it the API would be open to anyone.`,
+      "ACCESS_CODE is required. Without it the API would be open to anyone.",
     ),
   ALLOWED_HOSTS: z
     .string()

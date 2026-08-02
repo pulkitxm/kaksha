@@ -2,7 +2,6 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MIN_ACCESS_CODE_LENGTH } from "@kaksha/core";
 
 import { Banner, Button, Card } from "../components/ui";
 import { checkAccessCode } from "../lib/api";
@@ -23,6 +22,11 @@ export function ConnectView({
   const trimmed = code.trim();
 
   async function connect() {
+    if (busy) return;
+    if (trimmed.length === 0) {
+      setProblem("Enter the setup code first.");
+      return;
+    }
     setBusy(true);
     setProblem(null);
     try {
@@ -78,8 +82,9 @@ export function ConnectView({
               autoCorrect={false}
               secureTextEntry
               maxLength={200}
+              returnKeyType="go"
               onSubmitEditing={() => {
-                if (trimmed.length >= MIN_ACCESS_CODE_LENGTH && !busy) void connect();
+                void connect();
               }}
               style={{
                 backgroundColor: theme.panel,
@@ -97,7 +102,6 @@ export function ConnectView({
               label={busy ? "Connecting" : "Connect"}
               variant="primary"
               busy={busy}
-              disabled={trimmed.length < MIN_ACCESS_CODE_LENGTH}
               onPress={() => {
                 void connect();
               }}
