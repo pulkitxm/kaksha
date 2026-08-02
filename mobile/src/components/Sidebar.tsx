@@ -46,6 +46,10 @@ const ITEMS: Item[] = [
 const EXPANDED_WIDTH = 156;
 const RAIL_WIDTH = 68;
 
+function badgeLabel(count: number): string {
+  return count > 99 ? "99+" : String(count);
+}
+
 function Row({
   icon,
   label,
@@ -90,26 +94,17 @@ function Row({
             style={{
               position: "absolute",
               top: -5,
-              right: -8,
-              minWidth: 18,
+              right: -10,
+              width: 12 + badgeLabel(badge).length * 6,
               height: 16,
-              paddingHorizontal: 4,
               borderRadius: RADIUS.pill,
               backgroundColor: theme.danger,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Text
-              numberOfLines={1}
-              style={{
-                color: "#ffffff",
-                fontSize: 9,
-                fontWeight: "700",
-                textAlign: "center",
-              }}
-            >
-              {badge > 99 ? "99+" : badge}
+            <Text style={{ color: "#ffffff", fontSize: 9, fontWeight: "700" }}>
+              {badgeLabel(badge)}
             </Text>
           </Animated.View>
         ) : null}

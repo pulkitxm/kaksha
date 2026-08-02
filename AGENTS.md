@@ -49,6 +49,14 @@ code comes from the run number, which always increases. It checks for the
 JDK and SDK first and tells you what to install if either is absent. The
 generated `mobile/android` directory is disposable and is not committed.
 
+`bunx expo install --check` reports `react-native-reanimated` and
+`react-native-worklets` as outdated. Leave them. The pinned versions match the
+native libraries inside the installed Expo Go build; raising them to the versions
+the Expo SDK lists segfaults the JS thread on launch. Change them only together
+with the Expo Go build you develop against, and clear the Metro cache with
+`bunx expo start --clear` afterwards, since the worklets Babel plugin version is
+baked into the transform cache.
+
 Bun is the only package manager and runtime. There is no npm lockfile and no
 Node version file; `.bun-version` pins the toolchain for CI.
 
