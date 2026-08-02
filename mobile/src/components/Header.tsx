@@ -8,6 +8,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import type { ResolvedDataset } from "@kaksha/core";
 
@@ -24,10 +25,10 @@ function clockTime(iso: string): string {
   return `${hours}:${minutes}`;
 }
 
-function ReloadButton() {
+function SyncButton() {
   const theme = useTheme();
   const toast = useToast();
-  const { sync, reload } = useStore();
+  const { sync, syncNow } = useStore();
   const turns = useSharedValue(0);
 
   useEffect(() => {
@@ -47,11 +48,11 @@ function ReloadButton() {
   return (
     <View>
       <PressableScale
-        label="Reload data"
+        label="Sync now"
         disabled={sync.syncing}
         pressedScale={0.88}
         onPress={() => {
-          void reload().then((result) => {
+          void syncNow().then((result: "synced" | "offline") => {
             if (result === "synced") toast("Timetable is up to date", "success");
             else toast("You are offline, showing the saved copy", "error");
           });
@@ -102,15 +103,16 @@ export function Header({
   onToggleImmersive: () => void;
 }) {
   const theme = useTheme();
+  const router = useRouter();
   const { classId, setClassId, sync } = useStore();
   const [classPickerOpen, setClassPickerOpen] = useState(false);
 
   const statusLine = sync.syncing
     ? "Syncing"
     : sync.pending > 0
-      ? `Offline · ${String(sync.pending)} queued`
+      ? `${String(sync.pending)} waiting to send`
       : sync.offline
-        ? "Offline · cached copy"
+        ? "Offline, saved copy"
         : sync.lastSyncedAt
           ? `Synced ${clockTime(sync.lastSyncedAt)}`
           : `${String(dataset.sections.length)} sections`;
@@ -127,15 +129,23 @@ export function Header({
         gap: SPACING.sm,
       }}
     >
-      <View style={{ flex: 1 }}>
+      <PressableScale
+        label="Sync status"
+        pressedScale={0.98}
+        onPress={() => {
+          router.push("/sync");
+        }}
+        style={{ flex: 1 }}
+      >
         <Text style={{ color: theme.fg, fontSize: 18, fontWeight: "700" }}>Kaksha</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
           {sync.offline && !sync.syncing ? (
             <Ionicons name="cloud-offline-outline" size={11} color={theme.fgFaint} />
           ) : null}
           <Text style={{ color: theme.fgFaint, fontSize: 12 }}>{statusLine}</Text>
+          <Ionicons name="chevron-forward" size={11} color={theme.fgFaint} />
         </View>
-      </View>
+      </PressableScale>
 
       <PressableScale
         label="Switch class"
@@ -187,7 +197,7 @@ export function Header({
         ) : null}
       </View>
 
-      <ReloadButton />
+      <SyncButton />
 
       <IconButton
         icon="expand-outline"
