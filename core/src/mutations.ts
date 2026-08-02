@@ -5,6 +5,7 @@ import {
   classIdSchema,
   colorTokenSchema,
   dayIdSchema,
+  noteIdSchema,
   periodIdSchema,
   periodSchema,
   sectionIdSchema,
@@ -147,6 +148,7 @@ export const updateClassSubjectsSchema = z.object({
 });
 
 export const createNoteSchema = z.object({
+  id: noteIdSchema.optional(),
   classId: classIdSchema.nullable().default(null),
   title: z.string().min(1).max(120),
   html: z.string().max(200000).default(""),

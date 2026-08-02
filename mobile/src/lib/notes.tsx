@@ -10,9 +10,9 @@ import {
 } from "react";
 import type { Note } from "@kaksha/core";
 
-import { ApiError, fetchNotes, patchNote, removeNote, sendNote } from "./api";
+import { ApiError, patchNote, removeNote, sendNote } from "./api";
 import { readJson, writeJson } from "./cache";
-import { makeLocalId } from "./local";
+import { newId } from "./ids";
 import { useStore } from "./store";
 
 export type NotePatch = {
@@ -22,9 +22,9 @@ export type NotePatch = {
   pinned?: boolean;
 };
 
-type Status = "loading" | "ready" | "error";
+type Status = "loading" | "ready";
 
-type Cached = { notes: Note[]; dirty: string[]; removed: string[] };
+type LocalNotes = { drafts: Note[]; dirty: string[]; removed: string[] };
 
 type NotesValue = {
   notes: Note[];
@@ -32,18 +32,17 @@ type NotesValue = {
   offline: boolean;
   dirty: string[];
   refresh: () => Promise<void>;
-  create: (title: string) => Promise<Note>;
+  create: (title: string) => Note;
   update: (id: string, patch: NotePatch) => void;
   remove: (id: string) => void;
 };
 
 const NotesContext = createContext<NotesValue | null>(null);
 
-const LOCAL_MARKER = "_local_";
+const LOCAL_KEY = "notes-local";
+const PUSH_DELAY_MS = 1200;
 
-function cacheKey(classId: string): string {
-  return `notes-${classId}`;
-}
+const EMPTY_LOCAL: LocalNotes = { drafts: [], dirty: [], removed: [] };
 
 function sortNotes(notes: Note[]): Note[] {
   return [...notes].sort(
@@ -52,81 +51,109 @@ function sortNotes(notes: Note[]): Note[] {
   );
 }
 
+function payloadOf(note: Note) {
+  return {
+    classId: note.classId,
+    title: note.title,
+    html: note.html,
+    preview: note.preview,
+    pinned: note.pinned,
+  };
+}
+
 export function NotesProvider({ children }: { children: ReactNode }) {
-  const { classId } = useStore();
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [status, setStatus] = useState<Status>("loading");
+  const store = useStore();
+  const { db, classId, status: storeStatus, syncNow } = store;
+  const [local, setLocal] = useState<LocalNotes>(EMPTY_LOCAL);
   const [offline, setOffline] = useState(false);
-  const [dirty, setDirty] = useState<string[]>([]);
+  const [booted, setBooted] = useState(false);
 
-  const notesRef = useRef<Note[]>([]);
-  const dirtyRef = useRef<string[]>([]);
-  const removedRef = useRef<string[]>([]);
-  const classRef = useRef(classId);
+  const localRef = useRef<LocalNotes>(EMPTY_LOCAL);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const commit = useCallback((next: Note[], nextDirty: string[]) => {
-    notesRef.current = next;
-    dirtyRef.current = nextDirty;
-    setNotes(sortNotes(next));
-    setDirty(nextDirty);
-    const cached: Cached = {
-      notes: next,
-      dirty: nextDirty,
-      removed: removedRef.current,
+  const commit = useCallback((next: LocalNotes) => {
+    localRef.current = next;
+    setLocal(next);
+    writeJson(LOCAL_KEY, next);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function boot() {
+      const cached = await readJson<LocalNotes>(LOCAL_KEY);
+      if (cancelled) return;
+      if (cached) {
+        localRef.current = cached;
+        setLocal(cached);
+      }
+      setBooted(true);
+    }
+
+    void boot();
+
+    return () => {
+      cancelled = true;
     };
-    writeJson(cacheKey(classRef.current), cached);
   }, []);
 
   const push = useCallback(async (): Promise<boolean> => {
-    let list = notesRef.current;
-    const stuck: string[] = [];
+    let current = localRef.current;
     let reachable = true;
 
-    for (const id of removedRef.current) {
+    for (const id of current.removed) {
       try {
         await removeNote(id);
+        current = { ...current, removed: current.removed.filter((it) => it !== id) };
       } catch (cause) {
-        if (!(cause instanceof ApiError)) reachable = false;
+        if (cause instanceof ApiError) {
+          current = { ...current, removed: current.removed.filter((it) => it !== id) };
+        } else {
+          reachable = false;
+        }
       }
     }
-    if (reachable) removedRef.current = [];
 
-    for (const id of dirtyRef.current) {
-      const note = list.find((item) => item.id === id);
-      if (!note) continue;
-      const payload = {
-        classId: note.classId,
-        title: note.title,
-        html: note.html,
-        preview: note.preview,
-        pinned: note.pinned,
-      };
+    for (const id of current.dirty) {
+      const draft = current.drafts.find((note) => note.id === id);
+      if (!draft) {
+        current = { ...current, dirty: current.dirty.filter((it) => it !== id) };
+        continue;
+      }
       try {
-        const saved = id.includes(LOCAL_MARKER)
-          ? await sendNote(payload)
-          : await patchNote(id, payload);
-        list = list.map((item) => (item.id === id ? saved : item));
+        const saved = db?.notes.some((note) => note.id === id)
+          ? await patchNote(id, payloadOf(draft))
+          : await sendNote({ id, ...payloadOf(draft) });
+        current = {
+          ...current,
+          drafts: current.drafts.map((note) => (note.id === id ? saved : note)),
+          dirty: current.dirty.filter((it) => it !== id),
+        };
       } catch (cause) {
-        if (cause instanceof ApiError) continue;
-        stuck.push(id);
-        reachable = false;
+        if (cause instanceof ApiError) {
+          current = { ...current, dirty: current.dirty.filter((it) => it !== id) };
+        } else {
+          reachable = false;
+        }
       }
     }
 
-    commit(list, stuck);
+    commit(current);
     return reachable;
-  }, [commit]);
+  }, [commit, db]);
 
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refresh = useCallback(async () => {
+    const reachable = await push();
+    setOffline(!reachable);
+    if (reachable) await syncNow();
+  }, [push, syncNow]);
 
   const schedulePush = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      void push().then((reachable) => {
-        setOffline(!reachable);
-      });
-    }, 1200);
-  }, [push]);
+      void refresh();
+    }, PUSH_DELAY_MS);
+  }, [refresh]);
 
   useEffect(
     () => () => {
@@ -135,66 +162,51 @@ export function NotesProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const refresh = useCallback(async () => {
-    const startedFor = classRef.current;
-    try {
-      const reachable = await push();
-      if (classRef.current !== startedFor) return;
-      if (!reachable) {
-        setOffline(true);
-        setStatus("ready");
-        return;
-      }
-      const fetched = await fetchNotes(startedFor);
-      if (classRef.current !== startedFor) return;
-      commit(fetched, []);
-      setOffline(false);
-      setStatus("ready");
-    } catch {
-      if (classRef.current !== startedFor) return;
-      setOffline(true);
-      setStatus(notesRef.current.length > 0 ? "ready" : "error");
-    }
-  }, [commit, push]);
-
   useEffect(() => {
-    classRef.current = classId;
-    notesRef.current = [];
-    dirtyRef.current = [];
-    removedRef.current = [];
-    setNotes([]);
-    setDirty([]);
-    setStatus("loading");
+    if (!db) return;
+    const serverById = new Map(db.notes.map((note) => [note.id, note]));
+    const current = localRef.current;
 
-    let cancelled = false;
+    const drafts = current.drafts.filter((draft) => {
+      if (current.dirty.includes(draft.id)) return true;
+      const server = serverById.get(draft.id);
+      return !server || server.updatedAt < draft.updatedAt;
+    });
+    const removed = current.removed.filter((id) => serverById.has(id));
 
-    async function boot() {
-      const cached = await readJson<Cached>(cacheKey(classId));
-      if (cancelled) return;
-      if (cached) {
-        notesRef.current = cached.notes;
-        dirtyRef.current = cached.dirty;
-        removedRef.current = cached.removed;
-        setNotes(sortNotes(cached.notes));
-        setDirty(cached.dirty);
-        setStatus("ready");
-      }
-      await refresh();
+    if (
+      drafts.length === current.drafts.length &&
+      removed.length === current.removed.length
+    ) {
+      return;
+    }
+    commit({ ...current, drafts, removed });
+  }, [commit, db]);
+
+  const notes = useMemo(() => {
+    const removed = new Set(local.removed);
+    const merged = new Map<string, Note>();
+
+    for (const note of db?.notes ?? []) {
+      if (!removed.has(note.id)) merged.set(note.id, note);
+    }
+    for (const draft of local.drafts) {
+      if (!removed.has(draft.id)) merged.set(draft.id, draft);
     }
 
-    void boot();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [classId, refresh]);
+    return sortNotes(
+      [...merged.values()].filter(
+        (note) => note.classId === null || note.classId === classId,
+      ),
+    );
+  }, [classId, db, local]);
 
   const create = useCallback(
-    async (title: string): Promise<Note> => {
+    (title: string): Note => {
       const now = new Date().toISOString();
       const draft: Note = {
-        id: makeLocalId("not", classRef.current),
-        classId: classRef.current,
+        id: newId("not"),
+        classId,
         title,
         html: "",
         preview: "",
@@ -203,58 +215,65 @@ export function NotesProvider({ children }: { children: ReactNode }) {
         updatedAt: now,
       };
 
-      try {
-        const saved = await sendNote({
-          classId: draft.classId,
-          title: draft.title,
-          html: draft.html,
-          preview: draft.preview,
-          pinned: draft.pinned,
-        });
-        commit([...notesRef.current, saved], dirtyRef.current);
-        setOffline(false);
-        return saved;
-      } catch (cause) {
-        if (cause instanceof ApiError) throw cause;
-        setOffline(true);
-        commit([...notesRef.current, draft], [...dirtyRef.current, draft.id]);
-        return draft;
-      }
+      const current = localRef.current;
+      commit({
+        ...current,
+        drafts: [...current.drafts, draft],
+        dirty: [...current.dirty, draft.id],
+      });
+      schedulePush();
+      return draft;
     },
-    [commit],
+    [classId, commit, schedulePush],
   );
 
   const update = useCallback(
     (id: string, patch: NotePatch) => {
-      const next = notesRef.current.map((note) =>
-        note.id === id
-          ? { ...note, ...patch, updatedAt: new Date().toISOString() }
-          : note,
-      );
-      const nextDirty = dirtyRef.current.includes(id)
-        ? dirtyRef.current
-        : [...dirtyRef.current, id];
-      commit(next, nextDirty);
+      const current = localRef.current;
+      const base =
+        current.drafts.find((note) => note.id === id) ??
+        db?.notes.find((note) => note.id === id);
+      if (!base) return;
+
+      const next: Note = { ...base, ...patch, updatedAt: new Date().toISOString() };
+      commit({
+        ...current,
+        drafts: [...current.drafts.filter((note) => note.id !== id), next],
+        dirty: current.dirty.includes(id) ? current.dirty : [...current.dirty, id],
+      });
       schedulePush();
     },
-    [commit, schedulePush],
+    [commit, db, schedulePush],
   );
 
   const remove = useCallback(
     (id: string) => {
-      if (!id.includes(LOCAL_MARKER)) removedRef.current = [...removedRef.current, id];
-      commit(
-        notesRef.current.filter((note) => note.id !== id),
-        dirtyRef.current.filter((item) => item !== id),
-      );
+      const current = localRef.current;
+      const onServer = db?.notes.some((note) => note.id === id) ?? false;
+      commit({
+        drafts: current.drafts.filter((note) => note.id !== id),
+        dirty: current.dirty.filter((it) => it !== id),
+        removed: onServer ? [...current.removed, id] : current.removed,
+      });
       schedulePush();
     },
-    [commit, schedulePush],
+    [commit, db, schedulePush],
   );
 
+  const status: Status = booted && storeStatus !== "loading" ? "ready" : "loading";
+
   const value = useMemo<NotesValue>(
-    () => ({ notes, status, offline, dirty, refresh, create, update, remove }),
-    [notes, status, offline, dirty, refresh, create, update, remove],
+    () => ({
+      notes,
+      status,
+      offline,
+      dirty: local.dirty,
+      refresh,
+      create,
+      update,
+      remove,
+    }),
+    [notes, status, offline, local.dirty, refresh, create, update, remove],
   );
 
   return <NotesContext.Provider value={value}>{children}</NotesContext.Provider>;

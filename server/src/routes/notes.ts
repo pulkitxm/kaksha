@@ -39,7 +39,7 @@ noteRouter.post(
   "/notes",
   asHandler(async (request, response) => {
     const input = parse(createNoteSchema, request.body, "note");
-    const id = `not_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
+    const id = input.id ?? `not_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
 
     const [row] = await getDb()
       .insert(schema.notes)
@@ -50,6 +50,17 @@ noteRouter.post(
         html: input.html,
         preview: input.preview,
         pinned: input.pinned,
+      })
+      .onConflictDoUpdate({
+        target: schema.notes.id,
+        set: {
+          classId: input.classId,
+          title: input.title,
+          html: input.html,
+          preview: input.preview,
+          pinned: input.pinned,
+          updatedAt: new Date(),
+        },
       })
       .returning();
 
