@@ -4,12 +4,14 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import {
   dayNames,
+  pluralize,
   type Clash,
   type ResolvedDataset,
   type ResolvedEntry,
 } from "@kaksha/core";
 
 import {
+  Banner,
   Card,
   Chip,
   CountPill,
@@ -20,7 +22,7 @@ import {
 } from "../components/ui";
 import { SPACING, RADIUS, useTheme } from "../lib/theme";
 
-type Filter = "all" | "section" | "teacher";
+type Filter = "all" | "section" | "teacher" | "elective";
 
 export function ClashesView({
   dataset,
@@ -52,25 +54,38 @@ export function ClashesView({
   );
 
   const sectionCount = clashes.filter((clash) => clash.kind === "section").length;
-  const teacherCount = clashes.length - sectionCount;
+  const teacherCount = clashes.filter((clash) => clash.kind === "teacher").length;
+  const electiveCount = clashes.filter((clash) => clash.kind === "elective").length;
+  const problemCount = sectionCount + teacherCount;
 
-  const visible = clashes.filter((clash) => filter === "all" || clash.kind === filter);
+  const visible = clashes.filter((clash) =>
+    filter === "all" ? clash.kind !== "elective" : clash.kind === filter,
+  );
 
   return (
     <View>
       <ScreenHeading
         title="Clashes"
         hint={
-          clashes.length === 0
-            ? "Nothing overlaps in this class"
+          problemCount === 0
+            ? electiveCount > 0
+              ? `Nothing overlaps. ${pluralize(electiveCount, "combined elective group")} below.`
+              : "Nothing overlaps in this class"
             : `${String(sectionCount)} section overlaps, ${String(teacherCount)} teacher overlaps`
         }
       />
 
       {clashes.length > 0 ? (
-        <View style={{ flexDirection: "row", gap: SPACING.sm, marginBottom: SPACING.md }}>
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: SPACING.sm,
+            marginBottom: SPACING.md,
+          }}
+        >
           <Chip
-            label={`All ${String(clashes.length)}`}
+            label={`All ${String(problemCount)}`}
             active={filter === "all"}
             onPress={() => {
               setFilter("all");
@@ -90,14 +105,32 @@ export function ClashesView({
               setFilter("teacher");
             }}
           />
+          {electiveCount > 0 ? (
+            <Chip
+              label={`Elective groups ${String(electiveCount)}`}
+              active={filter === "elective"}
+              onPress={() => {
+                setFilter("elective");
+              }}
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {filter === "elective" && electiveCount > 0 ? (
+        <View style={{ marginBottom: SPACING.md }}>
+          <Banner
+            text="These are not problems. One teacher takes one elective subject for several sections at once, which is how a combined group is meant to look."
+            tone="info"
+          />
         </View>
       ) : null}
 
       {visible.length === 0 ? (
         <EmptyState
-          title={clashes.length === 0 ? "No clashes" : "Nothing in this filter"}
+          title={problemCount === 0 ? "No clashes" : "Nothing in this filter"}
           hint={
-            clashes.length === 0
+            problemCount === 0
               ? "Every section and teacher sits in one place at a time"
               : "Switch the filter to see the rest"
           }
@@ -111,6 +144,8 @@ export function ClashesView({
             clash.kind === "section"
               ? `Section ${sectionById.get(clash.sectionId ?? "")?.name ?? "?"}`
               : (teacherById.get(clash.teacherId ?? "")?.name ?? "Teacher");
+          const calm = clash.kind === "elective";
+          const accent = calm ? theme.accent : theme.danger;
           const entries = clash.entryIds
             .map((id) => entryById.get(id))
             .filter((entry): entry is ResolvedEntry => entry !== undefined);
@@ -124,7 +159,7 @@ export function ClashesView({
                 style={{
                   padding: SPACING.md,
                   gap: SPACING.md,
-                  borderColor: `${theme.danger}59`,
+                  borderColor: `${accent}59`,
                 }}
               >
                 <View
@@ -139,15 +174,17 @@ export function ClashesView({
                       width: 34,
                       height: 34,
                       borderRadius: RADIUS.pill,
-                      backgroundColor: `${theme.danger}1f`,
+                      backgroundColor: `${accent}1f`,
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
                     <Ionicons
-                      name={clash.kind === "section" ? "albums" : "person"}
+                      name={
+                        clash.kind === "section" ? "albums" : calm ? "people" : "person"
+                      }
                       size={16}
-                      color={theme.danger}
+                      color={accent}
                     />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -157,15 +194,17 @@ export function ClashesView({
                     <Text style={{ color: theme.fgMuted, fontSize: 12, marginTop: 1 }}>
                       {clash.kind === "section"
                         ? "Two lectures share the same slot"
-                        : entries.length === 1
-                          ? "Teaching two subjects in the same slot"
-                          : "Booked in two places at once"}
+                        : calm
+                          ? `Takes one elective group across ${pluralize(entries.length, "section")}`
+                          : entries.length === 1
+                            ? "Teaching two subjects in the same slot"
+                            : "Booked in two places at once"}
                     </Text>
                   </View>
                   <View style={{ alignItems: "flex-end", gap: 4 }}>
                     <CountPill
                       label={`Period ${period?.label ?? String(clash.periodId)}`}
-                      tone="danger"
+                      tone={calm ? undefined : "danger"}
                     />
                     <Text style={{ color: theme.fgFaint, fontSize: 11 }}>
                       {dayNames(clash.dayIds, dataset.days)}
