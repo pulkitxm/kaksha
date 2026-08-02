@@ -97,6 +97,7 @@ export function SelectSheet({
       visible={visible}
       title={title}
       subtitle={subtitle}
+      scroll={false}
       onClose={onClose}
       footer={
         multi ? (

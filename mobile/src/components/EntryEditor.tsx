@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import type { ResolvedDataset, ResolvedEntry } from "@kaksha/core";
 
@@ -235,10 +235,7 @@ export function EntryEditor({ target, dataset, onClose }: Props) {
           </View>
         }
       >
-        <ScrollView
-          style={{ paddingHorizontal: SPACING.lg }}
-          keyboardShouldPersistTaps="handled"
-        >
+        <View style={{ paddingHorizontal: SPACING.lg }}>
           <View style={{ marginBottom: SPACING.lg }}>
             <Label text="Section" />
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}>
@@ -388,7 +385,7 @@ export function EntryEditor({ target, dataset, onClose }: Props) {
               }}
             />
           </View>
-        </ScrollView>
+        </View>
       </Sheet>
 
       <ConfirmDialog

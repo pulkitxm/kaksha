@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -34,6 +35,7 @@ type Props = {
   onDismissed?: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  scroll?: boolean;
 };
 
 export function Sheet({
@@ -44,6 +46,7 @@ export function Sheet({
   onDismissed,
   children,
   footer,
+  scroll = true,
 }: Props) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -179,7 +182,19 @@ export function Sheet({
             </View>
           </GestureDetector>
 
-          <View style={{ flexShrink: 1 }}>{children}</View>
+          {scroll ? (
+            <ScrollView
+              style={{ flexShrink: 1 }}
+              contentContainerStyle={{ paddingBottom: SPACING.md }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              showsVerticalScrollIndicator={false}
+            >
+              {children}
+            </ScrollView>
+          ) : (
+            <View style={{ flexShrink: 1 }}>{children}</View>
+          )}
 
           {footer ? (
             <View
