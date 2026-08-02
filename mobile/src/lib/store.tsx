@@ -12,7 +12,9 @@ import {
   applyFilters,
   buildFilterOptions,
   EMPTY_FILTERS,
+  findClashes,
   resolveDataset,
+  type Clash,
   type DerivedView,
   type FilterOptions,
   type Filters,
@@ -46,6 +48,7 @@ type StoreValue = {
   dataset: ResolvedDataset | null;
   derived: DerivedView | null;
   options: FilterOptions | null;
+  clashes: Clash[];
   filters: Filters;
   sync: SyncState;
   setFilters: (next: Filters) => void;
@@ -240,6 +243,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [dataset],
   );
 
+  const clashes = useMemo(() => (dataset ? findClashes(dataset) : []), [dataset]);
+
   const sync = useMemo<SyncState>(
     () => ({ syncing, offline, pending: pendingCount, lastSyncedAt }),
     [syncing, offline, pendingCount, lastSyncedAt],
@@ -253,6 +258,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dataset,
       derived,
       options,
+      clashes,
       filters,
       sync,
       setFilters,
@@ -263,7 +269,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       mutate,
       reload,
     }),
-    [status, error, classId, dataset, derived, options, filters, sync, mutate, reload],
+    [
+      status,
+      error,
+      classId,
+      dataset,
+      derived,
+      options,
+      clashes,
+      filters,
+      sync,
+      mutate,
+      reload,
+    ],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

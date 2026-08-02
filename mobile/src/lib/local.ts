@@ -1,11 +1,19 @@
 import {
   labelForIndex,
   planMerge,
+  relabelSections,
+  type CreateClassInput,
   type CreateEntryInput,
+  type CreateSectionInput,
+  type CreateSubjectInput,
+  type CreateTeacherInput,
   type Entry,
   type MergeSectionsInput,
   type RawDataset,
   type ReorderSectionsInput,
+  type UpdateClassInput,
+  type UpdateSubjectInput,
+  type UpdateTeacherInput,
 } from "@kaksha/core";
 
 export type EntryPatch = {
@@ -22,12 +30,29 @@ export type LocalOp =
   | { kind: "deleteEntry"; id: string }
   | { kind: "renameSection"; id: string; name: string }
   | { kind: "mergeSections"; input: MergeSectionsInput }
-  | { kind: "reorderSections"; input: ReorderSectionsInput };
+  | { kind: "reorderSections"; input: ReorderSectionsInput }
+  | { kind: "createSection"; localId: string; input: CreateSectionInput }
+  | { kind: "deleteSection"; id: string }
+  | { kind: "setSectionElectives"; id: string; electiveSubjectIds: string[] }
+  | { kind: "createTeacher"; localId: string; input: CreateTeacherInput }
+  | { kind: "updateTeacher"; id: string; patch: UpdateTeacherInput }
+  | { kind: "deleteTeacher"; id: string; force: boolean }
+  | { kind: "createSubject"; localId: string; input: CreateSubjectInput }
+  | { kind: "updateSubject"; id: string; patch: UpdateSubjectInput }
+  | { kind: "deleteSubject"; id: string }
+  | { kind: "setClassSubjects"; classId: string; subjectIds: string[] }
+  | { kind: "createClass"; input: CreateClassInput }
+  | { kind: "updateClass"; id: string; patch: UpdateClassInput }
+  | { kind: "deleteClass"; id: string; force: boolean };
 
 const LOCAL_MARKER = "_local_";
 
+export function makeLocalId(prefix: string, scope: string): string {
+  return `${prefix}_${scope}${LOCAL_MARKER}${Date.now().toString(36)}`;
+}
+
 export function makeLocalEntryId(classId: string): string {
-  return `ent_${classId}${LOCAL_MARKER}${Date.now().toString(36)}`;
+  return makeLocalId("ent", classId);
 }
 
 export function isLocalEntryId(id: string): boolean {
@@ -125,6 +150,161 @@ export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
         }),
       };
     }
+    case "createSection":
+      return {
+        ...raw,
+        sections: [
+          ...raw.sections,
+          {
+            id: op.localId,
+            classId: op.input.classId,
+            name: op.input.name,
+            order: raw.sections.length,
+            electiveSubjectIds: op.input.electiveSubjectIds,
+            note: op.input.note,
+          },
+        ],
+      };
+    case "deleteSection": {
+      const survivors = raw.sections.filter((section) => section.id !== op.id);
+      const plan = new Map(
+        relabelSections(survivors).map((change) => [change.id, change]),
+      );
+      return {
+        ...raw,
+        sections: survivors.map((section) => {
+          const change = plan.get(section.id);
+          return change ? { ...section, order: change.order, name: change.name } : section;
+        }),
+        entries: raw.entries.filter((entry) => entry.sectionId !== op.id),
+      };
+    }
+    case "setSectionElectives":
+      return {
+        ...raw,
+        sections: raw.sections.map((section) =>
+          section.id === op.id
+            ? { ...section, electiveSubjectIds: op.electiveSubjectIds }
+            : section,
+        ),
+      };
+    case "createTeacher":
+      return {
+        ...raw,
+        teachers: [
+          ...raw.teachers,
+          {
+            id: op.localId,
+            name: op.input.name,
+            shortName: op.input.shortName,
+            department: op.input.department,
+            active: op.input.active,
+          },
+        ],
+      };
+    case "updateTeacher":
+      return {
+        ...raw,
+        teachers: raw.teachers.map((teacher) =>
+          teacher.id === op.id ? { ...teacher, ...op.patch } : teacher,
+        ),
+      };
+    case "deleteTeacher":
+      return {
+        ...raw,
+        teachers: raw.teachers.filter((teacher) => teacher.id !== op.id),
+        entries: raw.entries.map((entry) => ({
+          ...entry,
+          assignments: entry.assignments.map((assignment) =>
+            assignment.teacherId === op.id
+              ? { ...assignment, teacherId: null }
+              : assignment,
+          ),
+        })),
+      };
+    case "createSubject": {
+      const inClass = op.input.classIds.includes(raw.currentClass.id);
+      return {
+        ...raw,
+        subjects: [
+          ...raw.subjects,
+          {
+            id: op.localId,
+            code: op.input.code,
+            name: op.input.name,
+            group: op.input.group,
+            color: op.input.color,
+          },
+        ],
+        currentClass: inClass
+          ? {
+              ...raw.currentClass,
+              subjectIds: [...raw.currentClass.subjectIds, op.localId],
+            }
+          : raw.currentClass,
+      };
+    }
+    case "updateSubject":
+      return {
+        ...raw,
+        subjects: raw.subjects.map((subject) =>
+          subject.id === op.id ? { ...subject, ...op.patch } : subject,
+        ),
+      };
+    case "deleteSubject":
+      return {
+        ...raw,
+        subjects: raw.subjects.filter((subject) => subject.id !== op.id),
+        currentClass: {
+          ...raw.currentClass,
+          subjectIds: raw.currentClass.subjectIds.filter((id) => id !== op.id),
+        },
+        sections: raw.sections.map((section) => ({
+          ...section,
+          electiveSubjectIds: section.electiveSubjectIds.filter((id) => id !== op.id),
+        })),
+      };
+    case "setClassSubjects":
+      return op.classId === raw.currentClass.id
+        ? { ...raw, currentClass: { ...raw.currentClass, subjectIds: op.subjectIds } }
+        : raw;
+    case "createClass":
+      return {
+        ...raw,
+        classes: [
+          ...raw.classes,
+          {
+            id: op.input.id,
+            name: op.input.name,
+            shortName: op.input.shortName,
+            active: op.input.active,
+            entryCount: 0,
+          },
+        ],
+      };
+    case "updateClass": {
+      const summary = {
+        ...(op.patch.name === undefined ? {} : { name: op.patch.name }),
+        ...(op.patch.shortName === undefined ? {} : { shortName: op.patch.shortName }),
+        ...(op.patch.active === undefined ? {} : { active: op.patch.active }),
+      };
+      return {
+        ...raw,
+        classes: raw.classes.map((record) =>
+          record.id === op.id ? { ...record, ...summary } : record,
+        ),
+        currentClass:
+          op.id === raw.currentClass.id
+            ? {
+                ...raw.currentClass,
+                ...summary,
+                periods: op.patch.periods ?? raw.currentClass.periods,
+              }
+            : raw.currentClass,
+      };
+    }
+    case "deleteClass":
+      return { ...raw, classes: raw.classes.filter((record) => record.id !== op.id) };
   }
 }
 
