@@ -19,6 +19,7 @@ import { useToast } from "../components/Toast";
 import {
   Button,
   Card,
+  Chip,
   CountPill,
   EmptyState,
   FieldLabel,
@@ -51,8 +52,135 @@ function draftFor(subject: Subject, inClass: boolean): Draft {
   };
 }
 
-export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
+function SubjectGroup({
+  title,
+  hint,
+  subjects,
+  inClass,
+  lectures,
+  keepWhenEmpty,
+  tone,
+  onEdit,
+  onToggle,
+}: {
+  title: string;
+  hint: string;
+  subjects: Subject[];
+  inClass: boolean;
+  lectures: Map<string, number>;
+  keepWhenEmpty?: boolean;
+  tone?: "warning";
+  onEdit: (subject: Subject) => void;
+  onToggle: (subject: Subject) => void;
+}) {
   const theme = useTheme();
+
+  if (subjects.length === 0 && !keepWhenEmpty) return null;
+
+  return (
+    <View style={{ marginTop: SPACING.lg }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: SPACING.sm,
+          marginBottom: SPACING.xs,
+        }}
+      >
+        <Text
+          style={{
+            color: tone === "warning" ? theme.danger : theme.fgFaint,
+            fontSize: 11,
+            letterSpacing: 0.8,
+          }}
+        >
+          {title.toUpperCase()}
+        </Text>
+        <CountPill
+          label={String(subjects.length)}
+          tone={tone === "warning" ? "danger" : undefined}
+        />
+      </View>
+      <Text style={{ color: theme.fgMuted, fontSize: 12, marginBottom: SPACING.sm }}>
+        {hint}
+      </Text>
+
+      <View style={{ gap: SPACING.sm }}>
+        {subjects.map((subject, index) => {
+          const paint = subjectPaint(subject.color, theme);
+          const count = lectures.get(subject.id) ?? 0;
+
+          return (
+            <Animated.View
+              key={subject.id}
+              entering={FadeInDown.delay(Math.min(index * 20, 200)).duration(200)}
+            >
+              <PressableScale
+                label={`Edit ${subject.name}`}
+                pressedScale={0.99}
+                onPress={() => {
+                  onEdit(subject);
+                }}
+              >
+                <Card
+                  style={{
+                    padding: SPACING.md,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: SPACING.md,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: RADIUS.md,
+                      backgroundColor: paint.background,
+                      borderColor: paint.border,
+                      borderWidth: StyleSheet.hairlineWidth,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Ionicons name="book" size={17} color={paint.accent} />
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{ color: theme.fg, fontWeight: "700", fontSize: 15 }}
+                      numberOfLines={1}
+                    >
+                      {subject.code}
+                    </Text>
+                    <Text
+                      style={{ color: theme.fgMuted, fontSize: 12, marginTop: 1 }}
+                      numberOfLines={1}
+                    >
+                      {subject.name} · {subject.group}
+                    </Text>
+                  </View>
+
+                  {count > 0 ? <CountPill label={pluralize(count, "lecture")} /> : null}
+
+                  <Chip
+                    label={inClass ? "In this class" : "Add to class"}
+                    active={inClass}
+                    icon={inClass ? "checkmark" : "add"}
+                    onPress={() => {
+                      onToggle(subject);
+                    }}
+                  />
+                </Card>
+              </PressableScale>
+            </Animated.View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
   const store = useStore();
   const toast = useToast();
   const [query, setQuery] = useState("");
@@ -88,12 +216,31 @@ export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
           subject.name.toLowerCase().includes(needle) ||
           subject.group.toLowerCase().includes(needle),
       )
-      .sort(
-        (a, b) =>
-          Number(classSubjectIds.has(b.id)) - Number(classSubjectIds.has(a.id)) ||
-          a.code.localeCompare(b.code),
-      );
-  }, [classSubjectIds, dataset.subjects, query]);
+      .sort((a, b) => a.code.localeCompare(b.code));
+  }, [dataset.subjects, query]);
+
+  const taught = useMemo(
+    () => visible.filter((subject) => classSubjectIds.has(subject.id)),
+    [classSubjectIds, visible],
+  );
+
+  const unlisted = useMemo(
+    () =>
+      visible.filter(
+        (subject) =>
+          !classSubjectIds.has(subject.id) && (lectures.get(subject.id) ?? 0) > 0,
+      ),
+    [classSubjectIds, lectures, visible],
+  );
+
+  const elsewhere = useMemo(
+    () =>
+      visible.filter(
+        (subject) =>
+          !classSubjectIds.has(subject.id) && (lectures.get(subject.id) ?? 0) === 0,
+      ),
+    [classSubjectIds, lectures, visible],
+  );
 
   const editingLectures = draft?.id ? (lectures.get(draft.id) ?? 0) : 0;
 
@@ -118,6 +265,15 @@ export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
 
   function toggleMembership(subject: Subject) {
     const inClass = classSubjectIds.has(subject.id);
+    const count = lectures.get(subject.id) ?? 0;
+    const className = dataset.currentClass.name;
+
+    const done = inClass
+      ? count > 0
+        ? `${subject.code} is no longer listed for ${className}. Its ${pluralize(count, "lecture")} and the subject itself are untouched.`
+        : `${subject.code} is no longer listed for ${className}. The subject itself is still in the catalogue.`
+      : `${subject.code} is now listed for ${className}`;
+
     void run(
       () =>
         store.mutate({
@@ -125,7 +281,7 @@ export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
           classId: dataset.classId,
           subjectIds: membershipFor(subject.id, !inClass),
         }),
-      inClass ? "Removed from this class" : "Added to this class",
+      done,
     );
   }
 
@@ -174,9 +330,7 @@ export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
     <View>
       <ScreenHeading
         title="Subjects"
-        hint={`${String(classSubjectIds.size)} in ${dataset.currentClass.name}, ${String(
-          dataset.subjects.length,
-        )} in the catalogue`}
+        hint={`Every subject in the school is here. Choose which ones ${dataset.currentClass.name} teaches.`}
         action={
           <Button
             label="Add subject"
@@ -198,91 +352,56 @@ export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
 
       <SearchBar value={query} placeholder="Search subjects" onChange={setQuery} />
 
-      <View style={{ gap: SPACING.sm, marginTop: SPACING.md }}>
-        {visible.length === 0 ? (
-          <EmptyState title="No subjects" hint="Add one to build the timetable" />
-        ) : null}
+      {visible.length === 0 ? (
+        <View style={{ marginTop: SPACING.md }}>
+          <EmptyState
+            title={query ? "Nothing matches" : "No subjects"}
+            hint={query ? "Try a different word" : "Add one to build the timetable"}
+          />
+        </View>
+      ) : null}
 
-        {visible.map((subject, index) => {
-          const paint = subjectPaint(subject.color, theme);
-          const inClass = classSubjectIds.has(subject.id);
-          const count = lectures.get(subject.id) ?? 0;
+      <SubjectGroup
+        title={`Taught in ${dataset.currentClass.name}`}
+        hint={
+          taught.length === 0
+            ? `Nothing is listed for ${dataset.currentClass.name} yet. Add one from below.`
+            : "Tap a subject to edit it everywhere, or move it out of this class."
+        }
+        subjects={taught}
+        inClass
+        lectures={lectures}
+        keepWhenEmpty
+        onEdit={(subject) => {
+          setDraft(draftFor(subject, true));
+        }}
+        onToggle={toggleMembership}
+      />
 
-          return (
-            <Animated.View
-              key={subject.id}
-              entering={FadeInDown.delay(Math.min(index * 24, 240)).duration(200)}
-            >
-              <PressableScale
-                label={`Edit ${subject.name}`}
-                pressedScale={0.99}
-                onPress={() => {
-                  setDraft(draftFor(subject, inClass));
-                }}
-              >
-                <Card
-                  style={{
-                    padding: SPACING.md,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: SPACING.md,
-                    opacity: inClass ? 1 : 0.72,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: RADIUS.md,
-                      backgroundColor: paint.background,
-                      borderColor: paint.border,
-                      borderWidth: StyleSheet.hairlineWidth,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Ionicons name="book" size={17} color={paint.accent} />
-                  </View>
+      <SubjectGroup
+        title="On the timetable but not on the list"
+        hint={`Being taught in ${dataset.currentClass.name} without being listed for it. Add them to the list, or take their lectures off the timetable.`}
+        subjects={unlisted}
+        inClass={false}
+        lectures={lectures}
+        tone="warning"
+        onEdit={(subject) => {
+          setDraft(draftFor(subject, false));
+        }}
+        onToggle={toggleMembership}
+      />
 
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={{ color: theme.fg, fontWeight: "700", fontSize: 15 }}
-                      numberOfLines={1}
-                    >
-                      {subject.code}
-                    </Text>
-                    <Text
-                      style={{ color: theme.fgMuted, fontSize: 12, marginTop: 1 }}
-                      numberOfLines={1}
-                    >
-                      {subject.name} · {subject.group}
-                    </Text>
-                  </View>
-
-                  {count > 0 ? <CountPill label={pluralize(count, "lecture")} /> : null}
-
-                  <PressableScale
-                    label={inClass ? "Remove from this class" : "Add to this class"}
-                    selected={inClass}
-                    pressedScale={0.88}
-                    onPress={() => {
-                      toggleMembership(subject);
-                    }}
-                    style={{ padding: SPACING.xs }}
-                  >
-                    <Ionicons
-                      name={inClass ? "checkbox" : "square-outline"}
-                      size={21}
-                      color={inClass ? theme.accent : theme.lineStrong}
-                    />
-                  </PressableScale>
-                </Card>
-              </PressableScale>
-            </Animated.View>
-          );
-        })}
-        <View style={{ height: StyleSheet.hairlineWidth }} />
-      </View>
+      <SubjectGroup
+        title="Elsewhere in the school"
+        hint={`Not taught in ${dataset.currentClass.name}. Nothing here is deleted, it just belongs to other classes.`}
+        subjects={elsewhere}
+        inClass={false}
+        lectures={lectures}
+        onEdit={(subject) => {
+          setDraft(draftFor(subject, false));
+        }}
+        onToggle={toggleMembership}
+      />
 
       <Sheet
         visible={draft !== null}
@@ -411,12 +530,13 @@ export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
         title="Delete this subject?"
         message={
           editingLectures > 0
-            ? "It is still taught in this class. Remove those lectures first."
-            : "It disappears from the catalogue for every class."
+            ? `It is still used by ${pluralize(editingLectures, "lecture")} in this class. Remove those lectures first, or take it out of the class instead of deleting it.`
+            : "It disappears from the catalogue for every class. This is not the same as taking it out of one class."
         }
         confirmLabel="Delete"
         destructive
         busy={busy}
+        blocked={editingLectures > 0}
         onConfirm={() => {
           if (!draft?.id) return;
           void run(
