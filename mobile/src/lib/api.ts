@@ -22,13 +22,18 @@ import {
 import { accessCode, reportAccessRejected } from "./access";
 import { type EntryPatch, type LocalOp } from "./local";
 
-const configured =
-  process.env.EXPO_PUBLIC_API_URL ?? Constants.expoConfig?.extra?.["apiUrl"];
+const FALLBACK_API_URL = "https://kaksha.pulkit.page";
 
-const API_URL =
-  typeof configured === "string" && configured.length > 0
-    ? configured.replace(/\/$/, "")
-    : "https://kaksha.pulkit.page";
+function usable(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+const candidates = [
+  process.env.EXPO_PUBLIC_API_URL,
+  Constants.expoConfig?.extra?.["apiUrl"],
+];
+
+const API_URL = (candidates.find(usable) ?? FALLBACK_API_URL).trim().replace(/\/+$/, "");
 
 export class ApiError extends Error {
   readonly status: number;

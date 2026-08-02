@@ -64,6 +64,15 @@ Node version file; `.bun-version` pins the toolchain for CI.
 
 - Imports inside `core` and `server` use explicit `.js` extensions; both are `NodeNext` ESM.
 - Ids carry a table prefix: `sub_`, `tch_`, `sec_`, `ent_`, `not_`. Zod enforces the shape.
-- The app reads its API base from `extra.apiUrl` in `mobile/app.json`. Override it for a
-  session with `EXPO_PUBLIC_API_URL=http://localhost:4000 bun start`.
+- The app reads its API base from `EXPO_PUBLIC_API_URL`, falling back to `extra.apiUrl`
+  in `mobile/app.json`. Override it for a session with
+  `EXPO_PUBLIC_API_URL=http://localhost:4000 bun start`. Release builds take it from the
+  `API_URL` repository variable, so the domain can move without a code change.
+- The API answers nothing but `/api/health` without the shared `ACCESS_CODE`, sent by the
+  app as an `x-kaksha-code` header. The server refuses to start without it. Devices are
+  given the code once by hand; it is never built into the app, because the APK is
+  published publicly.
+- `ALLOWED_HOSTS` is an optional comma separated allowlist. When set, requests arriving on
+  any other hostname get a 404, which is how the `*.vercel.app` URLs are closed off. Check
+  what the server actually sees with `curl .../api/health` before setting it.
 - Anything crossing a boundary, whether a database row, a query parameter or a request body, is parsed by a Zod schema first.
