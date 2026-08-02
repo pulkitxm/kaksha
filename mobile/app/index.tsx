@@ -11,6 +11,7 @@ import { Sidebar, type ViewKey } from "../src/components/Sidebar";
 import { TabHost } from "../src/components/TabHost";
 import { ClashesView } from "../src/screens/ClashesView";
 import { ClassesView } from "../src/screens/ClassesView";
+import { FirstClassView } from "../src/screens/FirstClassView";
 import { NotesView } from "../src/screens/NotesView";
 import { SectionsView } from "../src/screens/SectionsView";
 import { SettingsView } from "../src/screens/SettingsView";
@@ -120,9 +121,7 @@ export default function Home() {
       { key: "notes" as ViewKey, render: () => <NotesView /> },
       {
         key: "share" as ViewKey,
-        render: () => (
-          <ShareView dataset={dataset} derived={derived} filters={store.filters} />
-        ),
+        render: () => <ShareView dataset={dataset} filters={store.filters} />,
       },
       { key: "settings" as ViewKey, render: () => <SettingsView /> },
     ];
@@ -148,6 +147,8 @@ export default function Home() {
       </SafeAreaView>
     );
   }
+
+  if (store.db && store.db.classes.length === 0) return <FirstClassView />;
 
   if (store.status === "error" || !dataset || !derived || !options) {
     return (

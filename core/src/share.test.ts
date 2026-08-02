@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 
 import { EMPTY_FILTERS, resolveDataset } from "./derive.js";
-import { buildShareModel, buildTeacherShareModel } from "./share.js";
+import { buildTeacherShareModel } from "./share.js";
 import type { Entry, Filters, Period, RawDataset, Section } from "./types.js";
 
 const school = { name: "", title: "Kaksha", session: "2025-26", updatedAt: "" };
@@ -139,27 +139,6 @@ const classSeven = resolveDataset(
 function withFilters(overrides: Partial<Filters>): Filters {
   return { ...EMPTY_FILTERS, ...overrides };
 }
-
-describe("buildShareModel", () => {
-  it("titles the card after the class and keeps plain section labels", () => {
-    const model = buildShareModel(classSix, classSix.entries, EMPTY_FILTERS);
-    expect(model.title).toBe("Class VI");
-    expect(model.subtitle).toBe("Class VI · 2025-26");
-    expect(model.footnote).toBe("Kaksha");
-    expect(model.lectures).toBe(2);
-    expect(model.rows[0]?.byDay[1]?.[0]?.sectionName).toBe("C");
-  });
-
-  it("only renders entries flagged as matched", () => {
-    const scoped = classSix.entries.map((entry) => ({
-      ...entry,
-      matched: entry.id === "ent_6_1",
-    }));
-    const model = buildShareModel(classSix, scoped, EMPTY_FILTERS);
-    expect(model.lectures).toBe(1);
-    expect(model.rows[0]?.byDay[2]).toBeUndefined();
-  });
-});
 
 describe("buildTeacherShareModel", () => {
   it("merges the teacher's lectures from every class", () => {

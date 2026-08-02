@@ -1,4 +1,4 @@
-import type { Section } from "./types.js";
+import type { ResolvedEntry, Section } from "./types.js";
 
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -46,4 +46,31 @@ export function planMerge(
   const survivors = sections.filter((section) => section.id !== sourceId);
 
   return { keep: relabelSections(survivors), removed: sourceId };
+}
+
+export function countMergeOverlaps(
+  entries: ResolvedEntry[],
+  sourceId: string,
+  targetId: string,
+): number {
+  const taken = new Set<string>();
+
+  for (const entry of entries) {
+    if (entry.sectionId !== targetId) continue;
+    for (const dayId of entry.dayIds) {
+      taken.add(`${String(entry.periodId)}|${String(dayId)}`);
+    }
+  }
+
+  const clashing = new Set<string>();
+
+  for (const entry of entries) {
+    if (entry.sectionId !== sourceId) continue;
+    for (const dayId of entry.dayIds) {
+      const slot = `${String(entry.periodId)}|${String(dayId)}`;
+      if (taken.has(slot)) clashing.add(slot);
+    }
+  }
+
+  return clashing.size;
 }

@@ -15,6 +15,13 @@
       "when": 1785662599775,
       "tag": "0001_yielding_longshot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1785680436747,
+      "tag": "0002_majestic_franklin_richards",
+      "breakpoints": true
     }
   ]
 }

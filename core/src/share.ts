@@ -5,7 +5,6 @@ import type {
   Period,
   ResolvedAssignment,
   ResolvedDataset,
-  ResolvedEntry,
 } from "./types.js";
 
 export type ShareCell = {
@@ -68,43 +67,6 @@ function toCell(sectionName: string, assignment: ResolvedAssignment): ShareCell 
 
 function sortedRows(rowMap: Map<number, ShareRow>): ShareRow[] {
   return [...rowMap.values()].sort((a, b) => a.periodId - b.periodId);
-}
-
-export function buildShareModel(
-  dataset: ResolvedDataset,
-  entries: ResolvedEntry[],
-  filters: Filters,
-): ShareModel {
-  const matched = entries.filter((entry) => entry.matched);
-  const sectionNameById = new Map(dataset.sections.map((s) => [s.id, s.name]));
-  const activeDays = pickDays(dataset.days, filters);
-  const rowMap = new Map<number, ShareRow>();
-
-  for (const entry of matched) {
-    const row = ensureRow(rowMap, entry.periodId, dataset.periods);
-
-    for (const dayId of entry.dayIds) {
-      if (!activeDays.some((day) => day.id === dayId)) continue;
-      const bucket = row.byDay[dayId] ?? [];
-      row.byDay[dayId] = bucket;
-
-      for (const assignment of entry.assignments) {
-        bucket.push(
-          toCell(sectionNameById.get(entry.sectionId) ?? entry.sectionId, assignment),
-        );
-      }
-    }
-  }
-
-  return {
-    title: dataset.currentClass.name,
-    subtitle: `${dataset.currentClass.name} · ${dataset.school.session}`,
-    lectures: matched.reduce((sum, entry) => sum + entry.lectures, 0),
-    slots: matched.length,
-    days: activeDays.map((day) => ({ id: day.id, short: day.short })),
-    rows: sortedRows(rowMap),
-    footnote: dataset.school.title,
-  };
 }
 
 export function buildTeacherShareModel(
