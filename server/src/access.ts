@@ -16,9 +16,16 @@ import { HttpError } from "./http.js";
 const OPEN_PATHS = new Set(["/health"]);
 
 function clientOf(request: { ip?: string; get: (name: string) => string | undefined }) {
-  const forwarded = request.get("x-forwarded-for");
-  const first = forwarded?.split(",")[0]?.trim();
-  return first && first.length > 0 ? first : (request.ip ?? "unknown");
+  const candidates = [
+    request.get("cf-connecting-ip"),
+    request.get("true-client-ip"),
+    request.get("x-real-ip"),
+    request.get("x-forwarded-for")?.split(",")[0],
+    request.ip,
+  ];
+
+  const found = candidates.map((value) => value?.trim()).find((value) => !!value);
+  return found ?? "unknown";
 }
 
 function digest(value: string): Buffer {
