@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Share, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { DetailScreen } from "../src/components/DetailScreen";
 import { useToast } from "../src/components/Toast";
