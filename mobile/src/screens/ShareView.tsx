@@ -3,12 +3,10 @@ import { Image, StyleSheet, Text, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import {
-  buildShareModel,
   buildTeacherShareModel,
   resolveDataset,
   sliceClass,
   THEMES,
-  type DerivedView,
   type Filters,
   type ResolvedDataset,
   type ShareModel,
@@ -25,7 +23,15 @@ import { RADIUS, SPACING, useTheme } from "../lib/theme";
 const EXPORT_WIDTH = 1200;
 const EXPORT_SCALE = 1.9;
 
-const EVERYONE = "everyone";
+const EMPTY_SHARE_MODEL: ShareModel = {
+  title: "Timetable",
+  subtitle: "",
+  lectures: 0,
+  slots: 0,
+  days: [],
+  rows: [],
+  footnote: "",
+};
 
 function ShareCard({
   model,
@@ -264,11 +270,9 @@ function slugify(value: string): string {
 
 export function ShareView({
   dataset,
-  derived,
   filters,
 }: {
   dataset: ResolvedDataset;
-  derived: DerivedView;
   filters: Filters;
 }) {
   const appTheme = useTheme();
@@ -307,25 +311,24 @@ export function ShareView({
         }
       }
     }
-    const merged = [...byId.values()]
+    return [...byId.values()]
       .filter((teacher) => teaching.has(teacher.id))
-      .sort((a, b) => a.name.localeCompare(b.name));
-    return [
-      { id: EVERYONE, label: "Whole class", sublabel: "Everything that matches" },
-      ...merged.map((teacher) => ({
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((teacher) => ({
         id: teacher.id,
         label: teacher.name,
         sublabel: teacher.department ?? undefined,
-      })),
-    ];
+      }));
   }, [allClasses]);
+
+  const selected = teacherId ?? teacherOptions[0]?.id ?? null;
 
   const model = useMemo(
     () =>
-      teacherId
-        ? buildTeacherShareModel(allClasses, teacherId, filters)
-        : buildShareModel(dataset, derived.entries, filters),
-    [allClasses, dataset, derived.entries, filters, teacherId],
+      selected
+        ? buildTeacherShareModel(allClasses, selected, filters)
+        : EMPTY_SHARE_MODEL,
+    [allClasses, filters, selected],
   );
 
   useEffect(() => {
@@ -347,15 +350,21 @@ export function ShareView({
   return (
     <View style={{ gap: SPACING.md }}>
       <SelectField
-        label="Timetable for"
-        placeholder="Whole class"
+        label="Whose timetable"
+        placeholder="Pick a teacher"
         options={teacherOptions}
-        selected={[teacherId ?? EVERYONE]}
+        selected={selected ? [selected] : []}
         onChange={(ids) => {
           const id = ids[0];
-          setTeacherId(!id || id === EVERYONE ? null : id);
+          if (id) setTeacherId(id);
         }}
       />
+
+      {teacherOptions.length === 0 ? (
+        <Text style={{ color: appTheme.fgMuted, fontSize: 13 }}>
+          No teacher has any lectures yet, so there is nothing to share.
+        </Text>
+      ) : null}
 
       <View style={{ flexDirection: "row", gap: SPACING.sm, alignItems: "center" }}>
         <Text style={{ color: appTheme.fgFaint, fontSize: 11, letterSpacing: 0.8 }}>

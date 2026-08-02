@@ -120,9 +120,7 @@ export default function Home() {
       { key: "notes" as ViewKey, render: () => <NotesView /> },
       {
         key: "share" as ViewKey,
-        render: () => (
-          <ShareView dataset={dataset} derived={derived} filters={store.filters} />
-        ),
+        render: () => <ShareView dataset={dataset} filters={store.filters} />,
       },
       { key: "settings" as ViewKey, render: () => <SettingsView /> },
     ];
