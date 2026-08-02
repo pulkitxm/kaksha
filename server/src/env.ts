@@ -15,6 +15,15 @@ const envSchema = z.object({
       MIN_ACCESS_CODE_LENGTH,
       `ACCESS_CODE is required and must be at least ${String(MIN_ACCESS_CODE_LENGTH)} characters. Without it the API would be open to anyone.`,
     ),
+  ALLOWED_HOSTS: z
+    .string()
+    .default("")
+    .transform((value) =>
+      value
+        .split(",")
+        .map((host) => host.trim().toLowerCase())
+        .filter(Boolean),
+    ),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   CORS_ORIGIN: z.string().default("*"),

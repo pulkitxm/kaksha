@@ -7,8 +7,8 @@ import { getTimetable } from "../query.js";
 
 export const healthRouter: Router = Router();
 
-healthRouter.get("/health", (_request, response) => {
-  response.json({ ok: true, service: "kaksha-server" });
+healthRouter.get("/health", (request, response) => {
+  response.json({ ok: true, service: "kaksha-server", host: request.hostname });
 });
 
 healthRouter.get(

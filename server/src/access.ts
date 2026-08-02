@@ -16,6 +16,24 @@ function matches(offered: string, expected: string): boolean {
   return timingSafeEqual(digest(offered), digest(expected));
 }
 
+export function requireKnownHost(): RequestHandler {
+  const { ALLOWED_HOSTS } = getEnv();
+
+  return (request, _response, next) => {
+    if (ALLOWED_HOSTS.length === 0) {
+      next();
+      return;
+    }
+
+    if (ALLOWED_HOSTS.includes(request.hostname.toLowerCase())) {
+      next();
+      return;
+    }
+
+    next(new HttpError(404, `No Kaksha here for ${request.hostname}`));
+  };
+}
+
 export function requireAccessCode(): RequestHandler {
   const { ACCESS_CODE } = getEnv();
 
