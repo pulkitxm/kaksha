@@ -13,7 +13,8 @@ export type ViewKey =
   | "sections"
   | "classes"
   | "notes"
-  | "share";
+  | "share"
+  | "settings";
 
 type Item = { key: ViewKey; label: string; icon: IconName; activeIcon: IconName };
 
@@ -129,13 +130,11 @@ export function Sidebar({
   expanded,
   clashCount,
   onChange,
-  onOpenSettings,
 }: {
   current: ViewKey;
   expanded: boolean;
   clashCount: number;
   onChange: (next: ViewKey) => void;
-  onOpenSettings: () => void;
 }) {
   const theme = useTheme();
 
@@ -178,11 +177,13 @@ export function Sidebar({
         }}
       >
         <Row
-          icon="settings-outline"
+          icon={current === "settings" ? "settings" : "settings-outline"}
           label="Settings"
-          active={false}
+          active={current === "settings"}
           expanded={expanded}
-          onPress={onOpenSettings}
+          onPress={() => {
+            onChange("settings");
+          }}
         />
       </View>
     </View>
