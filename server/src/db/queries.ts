@@ -1,10 +1,11 @@
-import { asc } from "drizzle-orm";
+import { asc, desc } from "drizzle-orm";
 import { z } from "zod";
 import {
   classIdSchema,
   classSchema,
   daySchema,
   entrySchema,
+  noteSchema,
   schoolSchema,
   sectionSchema,
   subjectSchema,
@@ -12,6 +13,7 @@ import {
   type ClassRecord,
   type Day,
   type Entry,
+  type Note,
   type School,
   type Section,
   type Subject,
@@ -53,6 +55,27 @@ export async function getDays(): Promise<Day[]> {
   return parseRows("days", z.array(daySchema), rows);
 }
 
+export function toNote(row: typeof schema.notes.$inferSelect): Note {
+  return noteSchema.parse({
+    id: row.id,
+    classId: row.classId,
+    title: row.title,
+    html: row.html,
+    preview: row.preview,
+    pinned: row.pinned,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  });
+}
+
+export async function getNotes(): Promise<Note[]> {
+  const rows = await getDb()
+    .select()
+    .from(schema.notes)
+    .orderBy(desc(schema.notes.pinned), desc(schema.notes.updatedAt));
+  return rows.map(toNote);
+}
+
 export async function getSubjects(): Promise<Subject[]> {
   const rows = await getDb()
     .select()
@@ -90,13 +113,14 @@ export async function getClasses(): Promise<ClassRecord[]> {
   return parseRows("classes", z.array(classSchema), shaped);
 }
 
-export async function getSections(classId: string): Promise<Section[]> {
-  if (!classIdSchema.safeParse(classId).success) return [];
+export async function getSections(classId: string | null): Promise<Section[]> {
+  if (classId !== null && !classIdSchema.safeParse(classId).success) return [];
 
   const rows = await getDb().query.sections.findMany({
-    where: (table, { eq }) => eq(table.classId, classId),
+    where: (table, { eq }) => (classId === null ? undefined : eq(table.classId, classId)),
     with: { electives: true },
     orderBy: (table, { asc: ascending }) => [
+      ascending(table.classId),
       ascending(table.order),
       ascending(table.name),
     ],
@@ -116,13 +140,14 @@ export async function getSections(classId: string): Promise<Section[]> {
   return parseRows("sections", z.array(sectionSchema), shaped);
 }
 
-export async function getEntries(classId: string): Promise<Entry[]> {
-  if (!classIdSchema.safeParse(classId).success) return [];
+export async function getEntries(classId: string | null): Promise<Entry[]> {
+  if (classId !== null && !classIdSchema.safeParse(classId).success) return [];
 
   const rows = await getDb().query.entries.findMany({
-    where: (table, { eq }) => eq(table.classId, classId),
+    where: (table, { eq }) => (classId === null ? undefined : eq(table.classId, classId)),
     with: { days: true, assignments: true },
     orderBy: (table, { asc: ascending }) => [
+      ascending(table.classId),
       ascending(table.sectionId),
       ascending(table.periodId),
       ascending(table.id),

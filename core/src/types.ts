@@ -186,7 +186,6 @@ export type RawDataset = {
 };
 
 export type Database = {
-  revision: number;
   school: School;
   days: Day[];
   subjects: Subject[];

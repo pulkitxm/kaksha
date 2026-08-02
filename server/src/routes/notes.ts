@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
 
-import { createNoteSchema, noteSchema, updateNoteSchema, type Note } from "@kaksha/core";
-import { desc, eq } from "drizzle-orm";
+import { createNoteSchema, updateNoteSchema } from "@kaksha/core";
+import { eq } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
 
 import { getDb, schema } from "../db/client.js";
+import { getNotes, toNote } from "../db/queries.js";
 import { asHandler, HttpError } from "../http.js";
 
 export const noteRouter: Router = Router();
@@ -20,37 +21,15 @@ function parse<T>(parser: z.ZodType<T>, value: unknown, label: string): T {
   return result.data;
 }
 
-type NoteRow = typeof schema.notes.$inferSelect;
-
-function toNote(row: NoteRow): Note {
-  return noteSchema.parse({
-    id: row.id,
-    classId: row.classId,
-    title: row.title,
-    html: row.html,
-    preview: row.preview,
-    pinned: row.pinned,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
-  });
-}
-
 noteRouter.get(
   "/notes",
   asHandler(async (request, response) => {
     const classFilter =
       typeof request.query.class === "string" ? request.query.class : null;
 
-    const rows = await getDb()
-      .select()
-      .from(schema.notes)
-      .orderBy(desc(schema.notes.pinned), desc(schema.notes.updatedAt));
-
-    const notes = rows
-      .filter(
-        (row) => !classFilter || row.classId === null || row.classId === classFilter,
-      )
-      .map(toNote);
+    const notes = (await getNotes()).filter(
+      (note) => !classFilter || note.classId === null || note.classId === classFilter,
+    );
 
     response.json({ notes });
   }),

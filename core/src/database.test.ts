@@ -9,7 +9,6 @@ const periods = [
 ];
 
 const db: Database = {
-  revision: 7,
   school: { name: "", title: "Kaksha", session: "2025-26", updatedAt: "" },
   days: [
     { id: 2, name: "Tuesday", short: "Tue", order: 2 },

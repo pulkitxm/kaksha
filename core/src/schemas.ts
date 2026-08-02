@@ -110,7 +110,6 @@ export const noteSchema = z.object({
 });
 
 export const databaseSchema = z.object({
-  revision: z.int().min(0).default(0),
   school: schoolSchema,
   days: z.array(daySchema),
   subjects: z.array(subjectSchema),
