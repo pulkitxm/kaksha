@@ -94,7 +94,15 @@ const gradlew = path.join(
 );
 if (!existsSync(gradlew)) fail([`Expected a gradle wrapper at ${gradlew}`]);
 
-run(gradlew, ["assembleRelease"], androidDir);
+const architectures = process.env.ANDROID_ABIS ?? "armeabi-v7a,arm64-v8a";
+
+process.stdout.write(`Building for ${architectures}\n`);
+
+run(
+  gradlew,
+  ["assembleRelease", `-PreactNativeArchitectures=${architectures}`],
+  androidDir,
+);
 
 const releaseDir = path.join(androidDir, "app", "build", "outputs", "apk", "release");
 if (!existsSync(releaseDir)) fail([`Gradle produced no output at ${releaseDir}`]);
