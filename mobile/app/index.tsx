@@ -1,31 +1,37 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 import { EntryEditor, type EditorTarget } from "../src/components/EntryEditor";
 import { FilterSheet } from "../src/components/FilterSheet";
-import { GridView } from "../src/screens/GridView";
-import { ListView } from "../src/screens/ListView";
-import { SectionTools } from "../src/components/SectionTools";
-import { ShareView } from "../src/screens/ShareView";
-import { TeachersView } from "../src/screens/TeachersView";
-import { Banner, Button, StatTile } from "../src/components/ui";
 import { Header } from "../src/components/Header";
+import { Sidebar, type ViewKey } from "../src/components/Sidebar";
+import { ClashesView } from "../src/screens/ClashesView";
+import { ClassesView } from "../src/screens/ClassesView";
+import { NotesView } from "../src/screens/NotesView";
+import { SectionsView } from "../src/screens/SectionsView";
+import { ShareView } from "../src/screens/ShareView";
+import { SubjectsView } from "../src/screens/SubjectsView";
+import { TeachersView } from "../src/screens/TeachersView";
+import { TimetableView } from "../src/screens/TimetableView";
+import { Banner, Button, IconButton } from "../src/components/ui";
 import { UpdateCard } from "../src/components/UpdateCard";
 import { useLayout } from "../src/lib/layout";
 import { useStore } from "../src/lib/store";
 import { useAppUpdate } from "../src/lib/update";
 import { SPACING, useTheme } from "../src/lib/theme";
-import { NavRail, type ViewKey } from "../src/components/NavRail";
 
 export default function Home() {
   const theme = useTheme();
   const layout = useLayout();
+  const router = useRouter();
   const store = useStore();
-  const [view, setView] = useState<ViewKey>("grid");
+  const [view, setView] = useState<ViewKey>("timetable");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [sectionsOpen, setSectionsOpen] = useState(false);
+  const [immersive, setImmersive] = useState(false);
   const [editing, setEditing] = useState<EditorTarget | null>(null);
   const appUpdate = useAppUpdate();
   const { check: checkForUpdate } = appUpdate;
@@ -33,6 +39,11 @@ export default function Home() {
   useEffect(() => {
     void checkForUpdate();
   }, [checkForUpdate]);
+
+  const clashedEntryIds = useMemo(
+    () => new Set(store.clashes.flatMap((clash) => clash.entryIds)),
+    [store.clashes],
+  );
 
   const activeFilterCount =
     store.filters.teacher.length +
@@ -73,35 +84,23 @@ export default function Home() {
   }
 
   const { dataset, derived, options } = store;
-  const stats = derived.stats;
 
   const body = (
     <ScrollView
-      contentContainerStyle={{ padding: SPACING.lg, gap: SPACING.lg }}
+      contentContainerStyle={{
+        padding: immersive ? SPACING.sm : SPACING.lg,
+        gap: SPACING.lg,
+      }}
       showsVerticalScrollIndicator={false}
     >
-      <UpdateCard state={appUpdate} />
-      <Animated.View
-        entering={FadeIn.duration(240)}
-        style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACING.sm }}
-      >
-        <StatTile
-          label={derived.filtersActive ? "Matching" : "Lectures"}
-          value={stats.matchedLectures}
-          hint={derived.filtersActive ? `of ${String(stats.totalLectures)}` : "per week"}
-        />
-        <StatTile label="Slots" value={stats.matchedEntries} hint="blocks" />
-        <StatTile label="Teachers" value={stats.matchedTeachers} hint="involved" />
-        {layout.isTablet ? (
-          <StatTile label="Subjects" value={stats.matchedSubjects} hint="involved" />
-        ) : null}
-      </Animated.View>
+      {immersive ? null : <UpdateCard state={appUpdate} />}
 
       <Animated.View key={view} entering={FadeInDown.duration(220)}>
-        {view === "grid" ? (
-          <GridView
+        {view === "timetable" ? (
+          <TimetableView
             dataset={dataset}
             derived={derived}
+            clashedEntryIds={clashedEntryIds}
             onEdit={(entry) => {
               setEditing({ mode: "edit", entry });
             }}
@@ -110,10 +109,10 @@ export default function Home() {
             }}
           />
         ) : null}
-        {view === "list" ? (
-          <ListView
+        {view === "clashes" ? (
+          <ClashesView
             dataset={dataset}
-            derived={derived}
+            clashes={store.clashes}
             onEdit={(entry) => {
               setEditing({ mode: "edit", entry });
             }}
@@ -122,6 +121,10 @@ export default function Home() {
         {view === "teachers" ? (
           <TeachersView dataset={dataset} derived={derived} />
         ) : null}
+        {view === "subjects" ? <SubjectsView dataset={dataset} /> : null}
+        {view === "sections" ? <SectionsView dataset={dataset} /> : null}
+        {view === "classes" ? <ClassesView dataset={dataset} /> : null}
+        {view === "notes" ? <NotesView /> : null}
         {view === "share" ? (
           <ShareView dataset={dataset} derived={derived} filters={store.filters} />
         ) : null}
@@ -132,30 +135,53 @@ export default function Home() {
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: theme.bg }}
-      edges={["top", "left", "right"]}
+      edges={immersive ? ["left", "right"] : ["top", "left", "right"]}
     >
-      <Header
-        dataset={dataset}
-        activeFilterCount={activeFilterCount}
-        onOpenFilters={() => {
-          setFiltersOpen(true);
-        }}
-        onOpenSections={() => {
-          setSectionsOpen(true);
-        }}
-      />
+      {immersive ? <StatusBar hidden /> : null}
 
-      {layout.isTablet ? (
-        <View style={{ flex: 1, flexDirection: "row" }}>
-          <NavRail current={view} onChange={setView} expanded />
-          <View style={{ flex: 1 }}>{body}</View>
-        </View>
-      ) : (
-        <View style={{ flex: 1 }}>
-          {body}
-          <NavRail current={view} onChange={setView} />
-        </View>
+      {immersive ? null : (
+        <Header
+          dataset={dataset}
+          activeFilterCount={activeFilterCount}
+          onOpenFilters={() => {
+            setFiltersOpen(true);
+          }}
+          onToggleImmersive={() => {
+            setImmersive(true);
+          }}
+        />
       )}
+
+      <View style={{ flex: 1, flexDirection: "row" }}>
+        {immersive ? null : (
+          <Sidebar
+            current={view}
+            expanded={layout.width >= 900}
+            clashCount={store.clashes.length}
+            onChange={setView}
+            onOpenSettings={() => {
+              router.push("/settings");
+            }}
+          />
+        )}
+        <View style={{ flex: 1 }}>{body}</View>
+      </View>
+
+      {immersive ? (
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          style={{ position: "absolute", right: SPACING.md, bottom: SPACING.md }}
+        >
+          <IconButton
+            icon="contract-outline"
+            label="Leave full screen"
+            tone="accent"
+            onPress={() => {
+              setImmersive(false);
+            }}
+          />
+        </Animated.View>
+      ) : null}
 
       <FilterSheet
         visible={filtersOpen}
@@ -165,14 +191,6 @@ export default function Home() {
         onApply={store.setFilters}
         onClose={() => {
           setFiltersOpen(false);
-        }}
-      />
-
-      <SectionTools
-        visible={sectionsOpen}
-        dataset={dataset}
-        onClose={() => {
-          setSectionsOpen(false);
         }}
       />
 

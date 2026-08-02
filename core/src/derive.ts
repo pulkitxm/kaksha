@@ -162,16 +162,22 @@ export function resolveDataset(raw: RawDataset): ResolvedDataset {
     ),
   }));
 
-  const classSubjectIds = new Set<string>([
+  const subjectIds = new Set<string>([
+    ...raw.subjects.map((subject) => subject.id),
     ...raw.currentClass.subjectIds,
     ...usedSubjectIds,
   ]);
 
-  const subjects = [...classSubjectIds]
+  const teacherIds = new Set<string>([
+    ...raw.teachers.map((teacher) => teacher.id),
+    ...usedTeacherIds,
+  ]);
+
+  const subjects = [...subjectIds]
     .map((id) => subjectById.get(id) ?? placeholderSubject(id))
     .sort((a, b) => a.group.localeCompare(b.group) || a.code.localeCompare(b.code));
 
-  const teachers = [...usedTeacherIds]
+  const teachers = [...teacherIds]
     .map((id) => teacherById.get(id) ?? placeholderTeacher(id))
     .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -375,9 +381,15 @@ export function buildFilterOptions(dataset: ResolvedDataset): FilterOptions {
     }
   }
 
+  const classSubjectIds = new Set(dataset.currentClass.subjectIds);
+
   return {
     teachers: [...teacherStats.values()].sort((a, b) => a.name.localeCompare(b.name)),
     subjects: dataset.subjects
+      .filter(
+        (subject) =>
+          classSubjectIds.has(subject.id) || (subjectStats.get(subject.id) ?? 0) > 0,
+      )
       .map((subject) => ({
         id: subject.id,
         code: subject.code,

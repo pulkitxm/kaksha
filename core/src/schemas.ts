@@ -18,6 +18,7 @@ export const subjectIdSchema = id("sub");
 export const teacherIdSchema = id("tch");
 export const sectionIdSchema = id("sec");
 export const entryIdSchema = id("ent");
+export const noteIdSchema = id("not");
 export const classIdSchema = z
   .string()
   .min(1)
@@ -95,6 +96,17 @@ export const entrySchema = z.object({
   dayIds: z.array(dayIdSchema).min(1),
   assignments: z.array(assignmentSchema).min(1),
   note: z.string().max(200).nullable().default(null),
+});
+
+export const noteSchema = z.object({
+  id: noteIdSchema,
+  classId: classIdSchema.nullable().default(null),
+  title: z.string().min(1).max(120),
+  html: z.string().max(200000).default(""),
+  preview: z.string().max(400).default(""),
+  pinned: z.boolean().default(false),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
 export const seedFileSchemas = {

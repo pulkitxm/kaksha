@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import {
   formatDayRange,
   type DerivedView,
@@ -13,14 +14,16 @@ import { RADIUS, SPACING, useTheme } from "../lib/theme";
 
 const SECTION_COLUMN = 96;
 
-export function GridView({
+export function TimetableView({
   dataset,
   derived,
+  clashedEntryIds,
   onEdit,
   onCreate,
 }: {
   dataset: ResolvedDataset;
   derived: DerivedView;
+  clashedEntryIds: Set<string>;
   onEdit: (entry: ResolvedEntry) => void;
   onCreate: (sectionId: string, periodId: number) => void;
 }) {
@@ -175,62 +178,80 @@ export function GridView({
                             <Text style={{ color: theme.fgFaint }}>+</Text>
                           </Pressable>
                         ) : (
-                          cell.map((entry) => (
-                            <Pressable
-                              key={entry.id}
-                              accessibilityRole="button"
-                              accessibilityLabel={`Edit ${entry.assignments
-                                .map((a) => a.subject.code)
-                                .join(" ")}`}
-                              onPress={() => {
-                                onEdit(entry);
-                              }}
-                              style={({ pressed }) => ({
-                                borderRadius: RADIUS.sm,
-                                padding: 5,
-                                backgroundColor: pressed
-                                  ? theme.panelHover
-                                  : "transparent",
-                                borderColor: theme.line,
-                                borderWidth: StyleSheet.hairlineWidth,
-                              })}
-                            >
-                              <Text style={{ color: theme.fgFaint, fontSize: 9 }}>
-                                {formatDayRange(entry.dayIds)}
-                              </Text>
-                              <View
-                                style={{
-                                  flexDirection: "row",
-                                  flexWrap: "wrap",
-                                  gap: 3,
-                                  marginTop: 2,
+                          cell.map((entry) => {
+                            const clashed = clashedEntryIds.has(entry.id);
+                            return (
+                              <Pressable
+                                key={entry.id}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Edit ${entry.assignments
+                                  .map((a) => a.subject.code)
+                                  .join(" ")}`}
+                                onPress={() => {
+                                  onEdit(entry);
                                 }}
+                                style={({ pressed }) => ({
+                                  borderRadius: RADIUS.sm,
+                                  padding: 5,
+                                  backgroundColor: pressed
+                                    ? theme.panelHover
+                                    : "transparent",
+                                  borderColor: clashed ? `${theme.danger}8c` : theme.line,
+                                  borderWidth: StyleSheet.hairlineWidth,
+                                })}
                               >
-                                {entry.assignments.map((assignment, index) => (
-                                  <Fragment key={`${entry.id}-${String(index)}`}>
-                                    <SubjectChip
-                                      code={assignment.subject.code}
-                                      color={assignment.subject.color}
-                                      theme={theme}
-                                      compact
+                                <View
+                                  style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    gap: 3,
+                                  }}
+                                >
+                                  <Text style={{ color: theme.fgFaint, fontSize: 9 }}>
+                                    {formatDayRange(entry.dayIds)}
+                                  </Text>
+                                  {clashed ? (
+                                    <Ionicons
+                                      name="warning"
+                                      size={9}
+                                      color={theme.danger}
                                     />
-                                  </Fragment>
-                                ))}
-                              </View>
-                              <Text
-                                style={{
-                                  color: theme.fgMuted,
-                                  fontSize: 10,
-                                  marginTop: 2,
-                                }}
-                                numberOfLines={2}
-                              >
-                                {entry.assignments
-                                  .map((a) => a.teacher?.name ?? "Unassigned")
-                                  .join(" / ")}
-                              </Text>
-                            </Pressable>
-                          ))
+                                  ) : null}
+                                </View>
+                                <View
+                                  style={{
+                                    flexDirection: "row",
+                                    flexWrap: "wrap",
+                                    gap: 3,
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  {entry.assignments.map((assignment, index) => (
+                                    <Fragment key={`${entry.id}-${String(index)}`}>
+                                      <SubjectChip
+                                        code={assignment.subject.code}
+                                        color={assignment.subject.color}
+                                        theme={theme}
+                                        compact
+                                      />
+                                    </Fragment>
+                                  ))}
+                                </View>
+                                <Text
+                                  style={{
+                                    color: theme.fgMuted,
+                                    fontSize: 10,
+                                    marginTop: 2,
+                                  }}
+                                  numberOfLines={2}
+                                >
+                                  {entry.assignments
+                                    .map((a) => a.teacher?.name ?? "Unassigned")
+                                    .join(" / ")}
+                                </Text>
+                              </Pressable>
+                            );
+                          })
                         )}
                       </View>
                     );

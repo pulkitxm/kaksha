@@ -4,6 +4,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
   type StyleProp,
   type ViewStyle,
@@ -84,34 +85,152 @@ export function Card({ children, style }: { children: ReactNode; style?: ViewSty
   );
 }
 
-export function StatTile({
+export function FieldLabel({ text }: { text: string }) {
+  const theme = useTheme();
+  return (
+    <Text
+      style={{
+        color: theme.fgFaint,
+        fontSize: 11,
+        letterSpacing: 0.8,
+        marginBottom: SPACING.sm,
+      }}
+    >
+      {text.toUpperCase()}
+    </Text>
+  );
+}
+
+export function TextField({
   label,
   value,
-  hint,
+  placeholder,
+  maxLength,
+  autoCapitalize = "sentences",
+  onChangeText,
 }: {
   label: string;
-  value: number;
-  hint: string;
+  value: string;
+  placeholder: string;
+  maxLength?: number;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  onChangeText: (next: string) => void;
 }) {
   const theme = useTheme();
   return (
-    <Card style={{ flexGrow: 1, flexBasis: 150, padding: SPACING.md }}>
-      <Text style={{ color: theme.fgFaint, fontSize: 11, letterSpacing: 0.8 }}>
-        {label.toUpperCase()}
-      </Text>
-      <Text
+    <View>
+      <FieldLabel text={label} />
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={theme.fgFaint}
+        maxLength={maxLength}
+        autoCapitalize={autoCapitalize}
         style={{
+          backgroundColor: theme.panel,
+          borderColor: theme.lineStrong,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderRadius: RADIUS.md,
           color: theme.fg,
-          fontSize: 26,
-          fontWeight: "700",
-          marginTop: SPACING.xs,
-          fontVariant: ["tabular-nums"],
+          paddingHorizontal: SPACING.md,
+          minHeight: 46,
+          fontSize: 14,
         }}
-      >
-        {value}
-      </Text>
-      <Text style={{ color: theme.fgMuted, fontSize: 12, marginTop: 2 }}>{hint}</Text>
-    </Card>
+      />
+    </View>
+  );
+}
+
+export function ToggleRow({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  const theme = useTheme();
+  return (
+    <PressableScale
+      label={label}
+      selected={value}
+      pressedScale={0.99}
+      onPress={() => {
+        onChange(!value);
+      }}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: SPACING.md,
+        backgroundColor: theme.panel,
+        borderColor: theme.lineStrong,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: RADIUS.md,
+        paddingHorizontal: SPACING.md,
+        paddingVertical: SPACING.md,
+      }}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: theme.fg, fontSize: 14, fontWeight: "600" }}>{label}</Text>
+        <Text style={{ color: theme.fgMuted, fontSize: 12, marginTop: 2 }}>{hint}</Text>
+      </View>
+      <Ionicons
+        name={value ? "checkmark-circle" : "ellipse-outline"}
+        size={22}
+        color={value ? theme.accent : theme.lineStrong}
+      />
+    </PressableScale>
+  );
+}
+
+export function ScreenHeading({
+  title,
+  hint,
+  action,
+}: {
+  title: string;
+  hint: string;
+  action?: ReactNode;
+}) {
+  const theme = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: SPACING.md,
+        marginBottom: SPACING.md,
+      }}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: theme.fg, fontSize: 20, fontWeight: "700" }}>{title}</Text>
+        <Text style={{ color: theme.fgMuted, fontSize: 13, marginTop: 2 }}>{hint}</Text>
+      </View>
+      {action}
+    </View>
+  );
+}
+
+export function CountPill({ label, tone }: { label: string; tone?: "danger" }) {
+  const theme = useTheme();
+  const color = tone === "danger" ? theme.danger : theme.fgMuted;
+  return (
+    <View
+      style={{
+        borderColor: `${color}66`,
+        borderWidth: StyleSheet.hairlineWidth,
+        backgroundColor: `${color}14`,
+        borderRadius: RADIUS.pill,
+        paddingHorizontal: SPACING.sm,
+        paddingVertical: 2,
+      }}
+    >
+      <Text style={{ color, fontSize: 11, fontWeight: "600" }}>{label}</Text>
+    </View>
   );
 }
 

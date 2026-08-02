@@ -286,12 +286,20 @@ export function ShareView({
 
   const teacherOptions = useMemo(() => {
     const byId = new Map<string, Teacher>();
+    const teaching = new Set<string>();
     for (const source of classData.datasets) {
       for (const teacher of source.teachers) {
         if (!byId.has(teacher.id)) byId.set(teacher.id, teacher);
       }
+      for (const entry of source.entries) {
+        for (const assignment of entry.assignments) {
+          if (assignment.teacher) teaching.add(assignment.teacher.id);
+        }
+      }
     }
-    const merged = [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+    const merged = [...byId.values()]
+      .filter((teacher) => teaching.has(teacher.id))
+      .sort((a, b) => a.name.localeCompare(b.name));
     return [
       { id: EVERYONE, label: "Whole class", sublabel: "Everything that matches" },
       ...merged.map((teacher) => ({

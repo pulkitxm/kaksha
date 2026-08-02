@@ -1,3 +1,4 @@
+export * from "./clashes.js";
 export * from "./colors.js";
 export * from "./derive.js";
 export * from "./format.js";
