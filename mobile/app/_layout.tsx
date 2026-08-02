@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ToastProvider } from "../src/components/Toast";
+import { AccessGate } from "../src/lib/gate";
 import { NotesProvider } from "../src/lib/notes";
 import { StoreProvider } from "../src/lib/store";
 import { ThemeModeProvider, useTheme } from "../src/lib/theme";
@@ -30,11 +31,13 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeModeProvider>
           <ToastProvider>
-            <StoreProvider>
-              <NotesProvider>
-                <ThemedShell />
-              </NotesProvider>
-            </StoreProvider>
+            <AccessGate>
+              <StoreProvider>
+                <NotesProvider>
+                  <ThemedShell />
+                </NotesProvider>
+              </StoreProvider>
+            </AccessGate>
           </ToastProvider>
         </ThemeModeProvider>
       </SafeAreaProvider>

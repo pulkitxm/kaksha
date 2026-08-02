@@ -30,7 +30,8 @@
       "expo-router",
       "expo-sharing",
       "expo-status-bar",
-      "./plugins/with-landscape-lock.js"
+      "./plugins/with-landscape-lock.js",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
