@@ -174,7 +174,9 @@ export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
         ...raw,
         sections: survivors.map((section) => {
           const change = plan.get(section.id);
-          return change ? { ...section, order: change.order, name: change.name } : section;
+          return change
+            ? { ...section, order: change.order, name: change.name }
+            : section;
         }),
         entries: raw.entries.filter((entry) => entry.sectionId !== op.id),
       };

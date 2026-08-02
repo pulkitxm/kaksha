@@ -185,7 +185,10 @@ function deleteSubject(id: string): Promise<{ id: string }> {
   return request(`/api/subjects/${id}`, { method: "DELETE" });
 }
 
-function setClassSubjects(classId: string, subjectIds: string[]): Promise<{ id: string }> {
+function setClassSubjects(
+  classId: string,
+  subjectIds: string[],
+): Promise<{ id: string }> {
   return request(`/api/classes/${classId}/subjects`, {
     method: "PUT",
     body: JSON.stringify({ subjectIds }),
