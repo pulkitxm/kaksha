@@ -178,6 +178,16 @@ export const notes = pgTable(
   (table) => [index("notes_class_idx").on(table.classId)],
 );
 
+export const accessAttempts = pgTable(
+  "access_attempts",
+  {
+    id: text("id").primaryKey(),
+    client: text("client").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("access_attempts_client_at_idx").on(table.client, table.at)],
+);
+
 export const classesRelations = relations(classes, ({ many }) => ({
   periods: many(periods),
   sections: many(sections),
