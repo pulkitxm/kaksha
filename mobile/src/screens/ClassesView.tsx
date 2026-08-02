@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { FadeInDown, LinearTransition } from "react-native-reanimated";
 import type { Period, ResolvedDataset } from "@kaksha/core";
 
@@ -133,15 +133,19 @@ function PeriodEditor({
   );
 }
 
-export function ClassesView({ dataset }: { dataset: ResolvedDataset }) {
+export function ClassesView({
+  dataset,
+  onOpened,
+}: {
+  dataset: ResolvedDataset;
+  onOpened: () => void;
+}) {
   const theme = useTheme();
   const store = useStore();
   const toast = useToast();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-
-  const sectionCount = dataset.sections.length;
 
   const summaries = useMemo(
     () =>
@@ -150,6 +154,22 @@ export function ClassesView({ dataset }: { dataset: ResolvedDataset }) {
       ),
     [dataset.classes],
   );
+
+  const sectionCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const section of store.db?.sections ?? []) {
+      counts.set(section.classId, (counts.get(section.classId) ?? 0) + 1);
+    }
+    return counts;
+  }, [store.db]);
+
+  const periodCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const record of store.db?.classes ?? []) {
+      counts.set(record.id, record.periods.length);
+    }
+    return counts;
+  }, [store.db]);
 
   async function run(action: () => Promise<"synced" | "queued">, done: string) {
     setBusy(true);
@@ -209,7 +229,7 @@ export function ClassesView({ dataset }: { dataset: ResolvedDataset }) {
     <View>
       <ScreenHeading
         title="Classes"
-        hint="Tap a class to load its timetable"
+        hint="Tap a class to open its timetable"
         action={
           <Button
             label="Add class"
@@ -243,11 +263,12 @@ export function ClassesView({ dataset }: { dataset: ResolvedDataset }) {
               entering={FadeInDown.delay(Math.min(index * 24, 240)).duration(200)}
             >
               <PressableScale
-                label={`Load ${record.name}`}
+                label={`Open ${record.name}`}
                 selected={current}
                 pressedScale={0.99}
                 onPress={() => {
                   if (!current) store.setClassId(record.id);
+                  onOpened();
                 }}
               >
                 <Card
@@ -296,11 +317,9 @@ export function ClassesView({ dataset }: { dataset: ResolvedDataset }) {
                       {record.active ? <CountPill label="active" /> : null}
                     </View>
                     <Text style={{ color: theme.fgMuted, fontSize: 12, marginTop: 1 }}>
-                      {current
-                        ? `${String(sectionCount)} sections · ${String(
-                            dataset.periods.length,
-                          )} periods · ${String(dataset.entries.length)} slots`
-                        : "Tap to load"}
+                      {`${String(sectionCounts.get(record.id) ?? 0)} sections · ${String(
+                        periodCounts.get(record.id) ?? 0,
+                      )} periods · ${String(record.entryCount)} slots`}
                     </Text>
                   </View>
 
@@ -370,69 +389,70 @@ export function ClassesView({ dataset }: { dataset: ResolvedDataset }) {
           </View>
         }
       >
-        <ScrollView
-          style={{ paddingHorizontal: SPACING.lg }}
-          keyboardShouldPersistTaps="handled"
+        <View
+          style={{
+            gap: SPACING.md,
+            paddingHorizontal: SPACING.lg,
+            paddingBottom: SPACING.lg,
+          }}
         >
-          <View style={{ gap: SPACING.md, paddingBottom: SPACING.lg }}>
+          <TextField
+            label="Name"
+            value={draft?.name ?? ""}
+            placeholder="Class VII"
+            maxLength={60}
+            autoCapitalize="words"
+            onChangeText={(name) => {
+              setDraft((current) => (current ? { ...current, name } : current));
+            }}
+          />
+          <TextField
+            label="Short name"
+            value={draft?.shortName ?? ""}
+            placeholder="VII"
+            maxLength={20}
+            autoCapitalize="characters"
+            onChangeText={(shortName) => {
+              setDraft((current) =>
+                current
+                  ? {
+                      ...current,
+                      shortName,
+                      id: current.isNew ? slugify(shortName) : current.id,
+                    }
+                  : current,
+              );
+            }}
+          />
+          {draft?.isNew ? (
             <TextField
-              label="Name"
-              value={draft?.name ?? ""}
-              placeholder="Class VII"
-              maxLength={60}
-              autoCapitalize="words"
-              onChangeText={(name) => {
-                setDraft((current) => (current ? { ...current, name } : current));
+              label="Id"
+              value={draft.id}
+              placeholder="7"
+              maxLength={32}
+              autoCapitalize="none"
+              onChangeText={(id) => {
+                setDraft((current) => (current ? { ...current, id } : current));
               }}
             />
-            <TextField
-              label="Short name"
-              value={draft?.shortName ?? ""}
-              placeholder="VII"
-              maxLength={20}
-              autoCapitalize="characters"
-              onChangeText={(shortName) => {
-                setDraft((current) =>
-                  current
-                    ? {
-                        ...current,
-                        shortName,
-                        id: current.isNew ? slugify(shortName) : current.id,
-                      }
-                    : current,
-                );
+          ) : null}
+          <ToggleRow
+            label="Active"
+            hint="The active class loads first when the app opens"
+            value={draft?.active ?? false}
+            onChange={(active) => {
+              setDraft((current) => (current ? { ...current, active } : current));
+            }}
+          />
+          {draft?.editable ? (
+            <PeriodEditor
+              periods={draft.periods}
+              onChange={(periods) => {
+                setDraft((current) => (current ? { ...current, periods } : current));
               }}
             />
-            {draft?.isNew ? (
-              <TextField
-                label="Id"
-                value={draft.id}
-                placeholder="7"
-                maxLength={32}
-                autoCapitalize="none"
-                onChangeText={(id) => {
-                  setDraft((current) => (current ? { ...current, id } : current));
-                }}
-              />
-            ) : null}
-            <ToggleRow
-              label="Active"
-              hint="The active class loads first when the app opens"
-              value={draft?.active ?? false}
-              onChange={(active) => {
-                setDraft((current) => (current ? { ...current, active } : current));
-              }}
-            />
-            {draft?.editable ? (
-              <PeriodEditor
-                periods={draft.periods}
-                onChange={(periods) => {
-                  setDraft((current) => (current ? { ...current, periods } : current));
-                }}
-              />
-            ) : null}
-          </View>
-        </ScrollView>
+          ) : null}
+        </View>
       </Sheet>
 
       <ConfirmDialog

@@ -26,3 +26,22 @@ export function writeJson(key: string, value: unknown): void {
     return;
   }
 }
+
+const WRITE_DELAY_MS = 700;
+
+const queued = new Map<string, unknown>();
+let timer: ReturnType<typeof setTimeout> | null = null;
+
+export function flushWrites(): void {
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
+  }
+  for (const [key, value] of queued) writeJson(key, value);
+  queued.clear();
+}
+
+export function writeJsonSoon(key: string, value: unknown): void {
+  queued.set(key, value);
+  timer ??= setTimeout(flushWrites, WRITE_DELAY_MS);
+}

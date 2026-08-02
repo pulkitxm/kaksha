@@ -185,6 +185,17 @@ export type RawDataset = {
   entries: Entry[];
 };
 
+export type Database = {
+  school: School;
+  days: Day[];
+  subjects: Subject[];
+  teachers: Teacher[];
+  classes: ClassRecord[];
+  sections: Section[];
+  entries: Entry[];
+  notes: Note[];
+};
+
 export type ResolvedDataset = {
   school: School;
   classId: string;

@@ -2,15 +2,17 @@ import {
   labelForIndex,
   planMerge,
   relabelSections,
+  type ClassRecord,
   type CreateClassInput,
   type CreateEntryInput,
   type CreateSectionInput,
   type CreateSubjectInput,
   type CreateTeacherInput,
+  type Database,
   type Entry,
   type MergeSectionsInput,
-  type RawDataset,
   type ReorderSectionsInput,
+  type Section,
   type UpdateClassInput,
   type UpdateSubjectInput,
   type UpdateTeacherInput,
@@ -70,7 +72,21 @@ function patchEntry(entry: Entry, patch: EntryPatch): Entry {
   };
 }
 
-export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
+function sectionsOf(db: Database, classId: string): Section[] {
+  return db.sections.filter((section) => section.classId === classId);
+}
+
+function patchClass(
+  db: Database,
+  id: string,
+  patch: Partial<ClassRecord>,
+): ClassRecord[] {
+  return db.classes.map((record) =>
+    record.id === id ? { ...record, ...patch } : record,
+  );
+}
+
+export function applyOp(db: Database, op: LocalOp): Database {
   switch (op.kind) {
     case "createEntry": {
       const entry: Entry = {
@@ -82,64 +98,67 @@ export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
         assignments: op.input.assignments,
         note: op.input.note,
       };
-      return { ...raw, entries: [...raw.entries, entry] };
+      return { ...db, entries: [...db.entries, entry] };
     }
     case "updateEntry":
       return {
-        ...raw,
-        entries: raw.entries.map((entry) =>
+        ...db,
+        entries: db.entries.map((entry) =>
           entry.id === op.id ? patchEntry(entry, op.patch) : entry,
         ),
       };
     case "deleteEntry":
-      return { ...raw, entries: raw.entries.filter((entry) => entry.id !== op.id) };
+      return { ...db, entries: db.entries.filter((entry) => entry.id !== op.id) };
     case "renameSection":
       return {
-        ...raw,
-        sections: raw.sections.map((section) =>
+        ...db,
+        sections: db.sections.map((section) =>
           section.id === op.id ? { ...section, name: op.name } : section,
         ),
       };
     case "mergeSections": {
-      const { sourceId, targetId, relabel } = op.input;
-      const source = raw.sections.find((section) => section.id === sourceId);
-      const target = raw.sections.find((section) => section.id === targetId);
-      if (!source || !target) return raw;
+      const { classId, sourceId, targetId, relabel } = op.input;
+      const siblings = sectionsOf(db, classId);
+      const source = siblings.find((section) => section.id === sourceId);
+      const target = siblings.find((section) => section.id === targetId);
+      if (!source || !target) return db;
 
-      const plan = planMerge(raw.sections, sourceId, targetId);
+      const plan = planMerge(siblings, sourceId, targetId);
       const mergedElectives = [
         ...target.electiveSubjectIds,
         ...source.electiveSubjectIds.filter(
           (id) => !target.electiveSubjectIds.includes(id),
         ),
       ];
-
-      const sections = raw.sections
-        .filter((section) => section.id !== sourceId)
-        .map((section) => {
-          const next =
-            section.id === targetId
-              ? { ...section, electiveSubjectIds: mergedElectives }
-              : section;
-          if (!relabel) return next;
-          const change = plan.keep.find((item) => item.id === section.id);
-          return change ? { ...next, order: change.order, name: change.name } : next;
-        });
+      const changes = new Map(plan.keep.map((change) => [change.id, change]));
 
       return {
-        ...raw,
-        sections,
-        entries: raw.entries.map((entry) =>
+        ...db,
+        sections: db.sections
+          .filter((section) => section.id !== sourceId)
+          .map((section) => {
+            const merged =
+              section.id === targetId
+                ? { ...section, electiveSubjectIds: mergedElectives }
+                : section;
+            if (!relabel || section.classId !== classId) return merged;
+            const change = changes.get(section.id);
+            return change
+              ? { ...merged, order: change.order, name: change.name }
+              : merged;
+          }),
+        entries: db.entries.map((entry) =>
           entry.sectionId === sourceId ? { ...entry, sectionId: targetId } : entry,
         ),
       };
     }
     case "reorderSections": {
-      const { orderedIds, relabel } = op.input;
+      const { classId, orderedIds, relabel } = op.input;
       const position = new Map(orderedIds.map((id, index) => [id, index]));
       return {
-        ...raw,
-        sections: raw.sections.map((section) => {
+        ...db,
+        sections: db.sections.map((section) => {
+          if (section.classId !== classId) return section;
           const index = position.get(section.id);
           if (index === undefined) return section;
           return {
@@ -152,39 +171,45 @@ export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
     }
     case "createSection":
       return {
-        ...raw,
+        ...db,
         sections: [
-          ...raw.sections,
+          ...db.sections,
           {
             id: op.localId,
             classId: op.input.classId,
             name: op.input.name,
-            order: raw.sections.length,
+            order: sectionsOf(db, op.input.classId).length,
             electiveSubjectIds: op.input.electiveSubjectIds,
             note: op.input.note,
           },
         ],
       };
     case "deleteSection": {
-      const survivors = raw.sections.filter((section) => section.id !== op.id);
-      const plan = new Map(
-        relabelSections(survivors).map((change) => [change.id, change]),
+      const removed = db.sections.find((section) => section.id === op.id);
+      if (!removed) return db;
+
+      const survivors = db.sections.filter((section) => section.id !== op.id);
+      const changes = new Map(
+        relabelSections(
+          survivors.filter((section) => section.classId === removed.classId),
+        ).map((change) => [change.id, change]),
       );
+
       return {
-        ...raw,
+        ...db,
         sections: survivors.map((section) => {
-          const change = plan.get(section.id);
+          const change = changes.get(section.id);
           return change
             ? { ...section, order: change.order, name: change.name }
             : section;
         }),
-        entries: raw.entries.filter((entry) => entry.sectionId !== op.id),
+        entries: db.entries.filter((entry) => entry.sectionId !== op.id),
       };
     }
     case "setSectionElectives":
       return {
-        ...raw,
-        sections: raw.sections.map((section) =>
+        ...db,
+        sections: db.sections.map((section) =>
           section.id === op.id
             ? { ...section, electiveSubjectIds: op.electiveSubjectIds }
             : section,
@@ -192,9 +217,9 @@ export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
       };
     case "createTeacher":
       return {
-        ...raw,
+        ...db,
         teachers: [
-          ...raw.teachers,
+          ...db.teachers,
           {
             id: op.localId,
             name: op.input.name,
@@ -206,16 +231,16 @@ export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
       };
     case "updateTeacher":
       return {
-        ...raw,
-        teachers: raw.teachers.map((teacher) =>
+        ...db,
+        teachers: db.teachers.map((teacher) =>
           teacher.id === op.id ? { ...teacher, ...op.patch } : teacher,
         ),
       };
     case "deleteTeacher":
       return {
-        ...raw,
-        teachers: raw.teachers.filter((teacher) => teacher.id !== op.id),
-        entries: raw.entries.map((entry) => ({
+        ...db,
+        teachers: db.teachers.filter((teacher) => teacher.id !== op.id),
+        entries: db.entries.map((entry) => ({
           ...entry,
           assignments: entry.assignments.map((assignment) =>
             assignment.teacherId === op.id
@@ -224,12 +249,11 @@ export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
           ),
         })),
       };
-    case "createSubject": {
-      const inClass = op.input.classIds.includes(raw.currentClass.id);
+    case "createSubject":
       return {
-        ...raw,
+        ...db,
         subjects: [
-          ...raw.subjects,
+          ...db.subjects,
           {
             id: op.localId,
             code: op.input.code,
@@ -238,75 +262,63 @@ export function applyOp(raw: RawDataset, op: LocalOp): RawDataset {
             color: op.input.color,
           },
         ],
-        currentClass: inClass
-          ? {
-              ...raw.currentClass,
-              subjectIds: [...raw.currentClass.subjectIds, op.localId],
-            }
-          : raw.currentClass,
+        classes: db.classes.map((record) =>
+          op.input.classIds.includes(record.id)
+            ? { ...record, subjectIds: [...record.subjectIds, op.localId] }
+            : record,
+        ),
       };
-    }
     case "updateSubject":
       return {
-        ...raw,
-        subjects: raw.subjects.map((subject) =>
+        ...db,
+        subjects: db.subjects.map((subject) =>
           subject.id === op.id ? { ...subject, ...op.patch } : subject,
         ),
       };
     case "deleteSubject":
       return {
-        ...raw,
-        subjects: raw.subjects.filter((subject) => subject.id !== op.id),
-        currentClass: {
-          ...raw.currentClass,
-          subjectIds: raw.currentClass.subjectIds.filter((id) => id !== op.id),
-        },
-        sections: raw.sections.map((section) => ({
+        ...db,
+        subjects: db.subjects.filter((subject) => subject.id !== op.id),
+        classes: db.classes.map((record) => ({
+          ...record,
+          subjectIds: record.subjectIds.filter((id) => id !== op.id),
+        })),
+        sections: db.sections.map((section) => ({
           ...section,
           electiveSubjectIds: section.electiveSubjectIds.filter((id) => id !== op.id),
         })),
       };
     case "setClassSubjects":
-      return op.classId === raw.currentClass.id
-        ? { ...raw, currentClass: { ...raw.currentClass, subjectIds: op.subjectIds } }
-        : raw;
+      return {
+        ...db,
+        classes: patchClass(db, op.classId, { subjectIds: op.subjectIds }),
+      };
     case "createClass":
       return {
-        ...raw,
+        ...db,
         classes: [
-          ...raw.classes,
+          ...db.classes,
           {
             id: op.input.id,
             name: op.input.name,
             shortName: op.input.shortName,
+            order: db.classes.length,
             active: op.input.active,
-            entryCount: 0,
+            periods: op.input.periods,
+            subjectIds: op.input.subjectIds,
           },
         ],
       };
-    case "updateClass": {
-      const summary = {
-        ...(op.patch.name === undefined ? {} : { name: op.patch.name }),
-        ...(op.patch.shortName === undefined ? {} : { shortName: op.patch.shortName }),
-        ...(op.patch.active === undefined ? {} : { active: op.patch.active }),
-      };
-      return {
-        ...raw,
-        classes: raw.classes.map((record) =>
-          record.id === op.id ? { ...record, ...summary } : record,
-        ),
-        currentClass:
-          op.id === raw.currentClass.id
-            ? {
-                ...raw.currentClass,
-                ...summary,
-                periods: op.patch.periods ?? raw.currentClass.periods,
-              }
-            : raw.currentClass,
-      };
-    }
+    case "updateClass":
+      return { ...db, classes: patchClass(db, op.id, op.patch) };
     case "deleteClass":
-      return { ...raw, classes: raw.classes.filter((record) => record.id !== op.id) };
+      return {
+        ...db,
+        classes: db.classes.filter((record) => record.id !== op.id),
+        sections: db.sections.filter((section) => section.classId !== op.id),
+        entries: db.entries.filter((entry) => entry.classId !== op.id),
+        notes: db.notes.filter((note) => note.classId !== op.id),
+      };
   }
 }
 

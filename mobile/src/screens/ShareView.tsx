@@ -5,6 +5,8 @@ import * as Sharing from "expo-sharing";
 import {
   buildShareModel,
   buildTeacherShareModel,
+  resolveDataset,
+  sliceClass,
   THEMES,
   type DerivedView,
   type Filters,
@@ -17,7 +19,7 @@ import {
 import { SelectField } from "../components/Select";
 import { useToast } from "../components/Toast";
 import { Button, Chip } from "../components/ui";
-import { useClassDatasets } from "../lib/classDatasets";
+import { useStore } from "../lib/store";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
 
 const EXPORT_WIDTH = 1200;
@@ -282,12 +284,20 @@ export function ShareView({
   const [preview, setPreview] = useState<{ uri: string; ratio: number } | null>(null);
 
   const exportTheme = exportDark ? THEMES.dark : THEMES.light;
-  const classData = useClassDatasets(dataset);
+  const { db } = useStore();
+
+  const allClasses = useMemo(() => {
+    if (!db) return [dataset];
+    return db.classes
+      .map((record) => sliceClass(db, record.id))
+      .filter((raw) => raw !== null)
+      .map((raw) => resolveDataset(raw));
+  }, [dataset, db]);
 
   const teacherOptions = useMemo(() => {
     const byId = new Map<string, Teacher>();
     const teaching = new Set<string>();
-    for (const source of classData.datasets) {
+    for (const source of allClasses) {
       for (const teacher of source.teachers) {
         if (!byId.has(teacher.id)) byId.set(teacher.id, teacher);
       }
@@ -308,17 +318,15 @@ export function ShareView({
         sublabel: teacher.department ?? undefined,
       })),
     ];
-  }, [classData.datasets]);
+  }, [allClasses]);
 
   const model = useMemo(
     () =>
       teacherId
-        ? buildTeacherShareModel(classData.datasets, teacherId, filters)
+        ? buildTeacherShareModel(allClasses, teacherId, filters)
         : buildShareModel(dataset, derived.entries, filters),
-    [classData.datasets, dataset, derived.entries, filters, teacherId],
+    [allClasses, dataset, derived.entries, filters, teacherId],
   );
-
-  const awaitingClasses = teacherId !== null && classData.loading;
 
   useEffect(() => {
     setPreview(null);
@@ -371,25 +379,13 @@ export function ShareView({
 
       <ShareCard model={model} theme={exportTheme} scale={1} />
 
-      {awaitingClasses ? (
-        <Text style={{ color: appTheme.fgMuted, fontSize: 12 }}>
-          Adding lectures from the other classes
-        </Text>
-      ) : null}
-
-      {teacherId && classData.missing.length > 0 ? (
-        <Text style={{ color: appTheme.fgMuted, fontSize: 12 }}>
-          Not included right now: {classData.missing.join(", ")}
-        </Text>
-      ) : null}
-
       <View style={{ flexDirection: "row", gap: SPACING.sm }}>
         <View style={{ flex: 1 }}>
           <Button
             label={job?.intent === "preview" ? "Rendering" : "Preview image"}
             icon="eye-outline"
             busy={job?.intent === "preview"}
-            disabled={awaitingClasses || job !== null}
+            disabled={job !== null}
             onPress={() => {
               setJob({
                 model,
@@ -406,7 +402,7 @@ export function ShareView({
             variant="primary"
             icon="share-social-outline"
             busy={job?.intent === "share"}
-            disabled={awaitingClasses || job !== null}
+            disabled={job !== null}
             onPress={() => {
               setJob({
                 model,

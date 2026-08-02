@@ -5,6 +5,7 @@ import {
   filtersSchema,
   resolveDataset,
   type ClassRecord,
+  type Database,
   type Filters,
   type RawDataset,
   type ResolvedDataset,
@@ -15,6 +16,7 @@ import {
   getClasses,
   getDays,
   getEntries,
+  getNotes,
   getSchool,
   getSections,
   getSubjects,
@@ -37,6 +39,22 @@ export function parseFilters(input: ParamSource): Filters {
 
 export function parseClassId(input: ParamSource): string | null {
   return classParamSchema.parse(input.class ?? null);
+}
+
+export async function getDatabase(): Promise<Database> {
+  const [school, days, subjects, teachers, classes, sections, entries, notes] =
+    await Promise.all([
+      getSchool(),
+      getDays(),
+      getSubjects(),
+      getTeachers(),
+      getClasses(),
+      getSections(null),
+      getEntries(null),
+      getNotes(),
+    ]);
+
+  return { school, days, subjects, teachers, classes, sections, entries, notes };
 }
 
 async function loadRawDataset(requestedClassId: string | null): Promise<RawDataset> {

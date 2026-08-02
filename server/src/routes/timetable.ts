@@ -1,10 +1,23 @@
 import { Router } from "express";
 
 import { asHandler } from "../http.js";
-import { getDataset, getTimetable, parseClassId, parseFilters } from "../query.js";
+import {
+  getDatabase,
+  getDataset,
+  getTimetable,
+  parseClassId,
+  parseFilters,
+} from "../query.js";
 import type { ParamSource } from "../query.js";
 
 export const timetableRouter: Router = Router();
+
+timetableRouter.get(
+  "/snapshot",
+  asHandler(async (_request, response) => {
+    response.json(await getDatabase());
+  }),
+);
 
 timetableRouter.get(
   "/dataset",

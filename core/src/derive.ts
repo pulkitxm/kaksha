@@ -1,6 +1,5 @@
 import { colorForKey, isColorToken } from "./colors.js";
 import type {
-  ClassSummary,
   Day,
   Entry,
   FilterOptions,
@@ -476,16 +475,6 @@ export const VIEWS: readonly TimetableView[] = ["grid", "list", "teachers"] as c
 
 export function isView(value: string): value is TimetableView {
   return (VIEWS as readonly string[]).includes(value);
-}
-
-export function summarizeClasses(
-  classes: ClassSummary[],
-  currentClassId: string,
-  entryCount: number,
-): ClassSummary[] {
-  return classes.map((record) =>
-    record.id === currentClassId ? { ...record, entryCount } : record,
-  );
 }
 
 export type { Entry };

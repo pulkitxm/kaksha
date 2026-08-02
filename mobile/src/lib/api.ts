@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import {
+  databaseSchema,
   noteSchema,
   type CreateClassInput,
   type CreateEntryInput,
@@ -7,11 +8,10 @@ import {
   type CreateSectionInput,
   type CreateSubjectInput,
   type CreateTeacherInput,
+  type Database,
   type MergeSectionsInput,
   type Note,
-  type RawDataset,
   type ReorderSectionsInput,
-  type ResolvedDataset,
   type UpdateClassInput,
   type UpdateNoteInput,
   type UpdateSubjectInput,
@@ -39,64 +39,64 @@ export class ApiError extends Error {
 }
 
 const REQUEST_TIMEOUT_MS = 12000;
+const SNAPSHOT_TIMEOUT_MS = 30000;
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function send(
+  path: string,
+  init: RequestInit | undefined,
+  timeoutMs: number,
+): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => {
     controller.abort();
-  }, REQUEST_TIMEOUT_MS);
+  }, timeoutMs);
 
   try {
-    const response = await fetch(`${API_URL}${path}`, {
+    return await fetch(`${API_URL}${path}`, {
       ...init,
       signal: controller.signal,
       headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
     });
-
-    if (!response.ok) {
-      const body = (await response.text()).slice(0, 300);
-      throw new ApiError(response.status, `${String(response.status)} ${path}: ${body}`);
-    }
-
-    return (await response.json()) as T;
   } finally {
     clearTimeout(timer);
   }
 }
 
-export async function fetchRawDataset(classId: string): Promise<RawDataset> {
-  const dataset = await request<ResolvedDataset>(`/api/dataset?class=${classId}`);
-  return toRaw(dataset);
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await send(path, init, REQUEST_TIMEOUT_MS);
+
+  if (!response.ok) {
+    const body = (await response.text()).slice(0, 300);
+    throw new ApiError(response.status, `${String(response.status)} ${path}: ${body}`);
+  }
+
+  return (await response.json()) as T;
 }
 
-function toRaw(dataset: ResolvedDataset): RawDataset {
+export type SnapshotResult =
+  { kind: "unchanged" } | { kind: "fresh"; db: Database; etag: string | null };
+
+export async function fetchSnapshot(etag: string | null): Promise<SnapshotResult> {
+  const response = await send(
+    "/api/snapshot",
+    etag ? { headers: { "if-none-match": etag } } : undefined,
+    SNAPSHOT_TIMEOUT_MS,
+  );
+
+  if (response.status === 304) return { kind: "unchanged" };
+
+  if (!response.ok) {
+    const body = (await response.text()).slice(0, 300);
+    throw new ApiError(
+      response.status,
+      `${String(response.status)} /api/snapshot: ${body}`,
+    );
+  }
+
   return {
-    school: dataset.school,
-    classes: dataset.classes,
-    currentClass: dataset.currentClass,
-    days: dataset.days,
-    subjects: dataset.subjects,
-    teachers: dataset.teachers,
-    sections: dataset.sections.map((section) => ({
-      id: section.id,
-      classId: section.classId,
-      name: section.name,
-      order: section.order,
-      note: section.note,
-      electiveSubjectIds: section.electives.map((subject) => subject.id),
-    })),
-    entries: dataset.entries.map((entry) => ({
-      id: entry.id,
-      classId: entry.classId,
-      sectionId: entry.sectionId,
-      periodId: entry.periodId,
-      dayIds: entry.dayIds,
-      note: entry.note,
-      assignments: entry.assignments.map((assignment) => ({
-        subjectId: assignment.subject.id,
-        teacherId: assignment.teacher?.id ?? null,
-      })),
-    })),
+    kind: "fresh",
+    db: databaseSchema.parse(await response.json()),
+    etag: response.headers.get("etag"),
   };
 }
 
@@ -206,11 +206,6 @@ function updateClass(id: string, patch: UpdateClassInput): Promise<{ id: string 
 
 function deleteClass(id: string, force: boolean): Promise<{ id: string }> {
   return request(`/api/classes/${id}${force ? "?force=1" : ""}`, { method: "DELETE" });
-}
-
-export async function fetchNotes(classId: string): Promise<Note[]> {
-  const payload = await request<{ notes: unknown[] }>(`/api/notes?class=${classId}`);
-  return payload.notes.map((note) => noteSchema.parse(note));
 }
 
 export async function sendNote(input: CreateNoteInput): Promise<Note> {

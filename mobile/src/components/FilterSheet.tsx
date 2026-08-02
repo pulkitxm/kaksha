@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   applyFilters,
@@ -125,10 +125,7 @@ export function FilterSheet({
         </View>
       }
     >
-      <ScrollView
-        style={{ paddingHorizontal: SPACING.lg }}
-        keyboardShouldPersistTaps="handled"
-      >
+      <View style={{ paddingHorizontal: SPACING.lg }}>
         <View
           style={{
             flexDirection: "row",
@@ -215,7 +212,7 @@ export function FilterSheet({
             />
           ))}
         </FilterGroup>
-      </ScrollView>
+      </View>
     </Sheet>
   );
 }
