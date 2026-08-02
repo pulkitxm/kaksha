@@ -3,6 +3,7 @@ import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 import { EntryEditor, type EditorTarget } from "../src/components/EntryEditor";
 import { FilterSheet } from "../src/components/FilterSheet";
@@ -136,6 +137,8 @@ export default function Home() {
       style={{ flex: 1, backgroundColor: theme.bg }}
       edges={immersive ? ["left", "right"] : ["top", "left", "right"]}
     >
+      {immersive ? <StatusBar hidden /> : null}
+
       {immersive ? null : (
         <Header
           dataset={dataset}

@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import {
   COLOR_TOKENS,
+  pluralize,
   subjectPaint,
   swatch,
   type ColorToken,
@@ -258,7 +259,7 @@ export function SubjectsView({ dataset }: { dataset: ResolvedDataset }) {
                     </Text>
                   </View>
 
-                  {count > 0 ? <CountPill label={`${String(count)} lectures`} /> : null}
+                  {count > 0 ? <CountPill label={pluralize(count, "lecture")} /> : null}
 
                   <PressableScale
                     label={inClass ? "Remove from this class" : "Add to this class"}

@@ -195,10 +195,8 @@ export function TimetableView({
                                   padding: 5,
                                   backgroundColor: pressed
                                     ? theme.panelHover
-                                    : clashed
-                                      ? `${theme.danger}14`
-                                      : "transparent",
-                                  borderColor: clashed ? theme.danger : theme.line,
+                                    : "transparent",
+                                  borderColor: clashed ? `${theme.danger}8c` : theme.line,
                                   borderWidth: StyleSheet.hairlineWidth,
                                 })}
                               >

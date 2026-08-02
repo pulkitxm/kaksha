@@ -7,7 +7,12 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import type { DerivedView, ResolvedDataset, Teacher } from "@kaksha/core";
+import {
+  pluralize,
+  type DerivedView,
+  type ResolvedDataset,
+  type Teacher,
+} from "@kaksha/core";
 
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { SearchBar } from "../components/SearchBar";
@@ -240,7 +245,7 @@ export function TeachersView({
                     </View>
                     <Text style={{ color: theme.fgMuted, fontSize: 12, marginTop: 1 }}>
                       {teacher.department ?? "No department"}
-                      {row ? ` · ${String(row.slots)} slots` : ""}
+                      {row ? ` · ${pluralize(row.slots, "slot")}` : ""}
                     </Text>
                     {row ? <LoadBar fraction={row.lectures / (peak || 1)} /> : null}
                     {row && row.subjects.length > 0 ? (
