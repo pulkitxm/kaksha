@@ -2,6 +2,7 @@ import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
 
+import { requireAccessCode } from "./access.js";
 import { getEnv } from "./env.js";
 import { errorHandler, HttpError } from "./http.js";
 import { catalogRouter } from "./routes/catalog.js";
@@ -24,6 +25,12 @@ export function createApp(): Express {
     }),
   );
   app.use(express.json({ limit: "1mb" }));
+
+  app.use("/api", requireAccessCode());
+
+  app.get("/api/access", (_request, response) => {
+    response.json({ ok: true });
+  });
 
   app.use("/api", healthRouter);
   app.use("/api", timetableRouter);
