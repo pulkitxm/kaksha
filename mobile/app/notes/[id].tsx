@@ -11,6 +11,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   CoreBridge,
+  darkEditorTheme,
+  defaultEditorTheme,
   PlaceholderBridge,
   RichText,
   TenTapStartKit,
@@ -109,11 +111,32 @@ export default function NoteScreen() {
     [theme],
   );
 
+  const editorTheme = useMemo(() => {
+    const base = theme.isDark ? darkEditorTheme : defaultEditorTheme;
+    return {
+      ...base,
+      toolbar: {
+        ...base.toolbar,
+        toolbarBody: [
+          base.toolbar.toolbarBody,
+          {
+            backgroundColor: theme.bgSubtle,
+            borderTopColor: theme.line,
+            borderBottomColor: theme.line,
+          },
+        ],
+      },
+      webview: [base.webview, { backgroundColor: theme.bg }],
+      webviewContainer: [base.webviewContainer, { backgroundColor: theme.bg }],
+    };
+  }, [theme]);
+
   const editor = useEditorBridge({
     autofocus: false,
     avoidIosKeyboard: true,
     initialContent: note?.html && note.html.length > 0 ? note.html : "<p></p>",
     bridgeExtensions,
+    theme: editorTheme,
   });
 
   const html = useEditorContent(editor, { type: "html", debounceInterval: 600 });

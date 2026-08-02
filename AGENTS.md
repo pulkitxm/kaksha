@@ -55,5 +55,7 @@ Node version file; `.bun-version` pins the toolchain for CI.
 ## Conventions
 
 - Imports inside `core` and `server` use explicit `.js` extensions; both are `NodeNext` ESM.
-- Ids carry a table prefix: `sub_`, `tch_`, `sec_`, `ent_`. Zod enforces the shape.
+- Ids carry a table prefix: `sub_`, `tch_`, `sec_`, `ent_`, `not_`. Zod enforces the shape.
+- The app reads its API base from `extra.apiUrl` in `mobile/app.json`. Override it for a
+  session with `EXPO_PUBLIC_API_URL=http://localhost:4000 bun start`.
 - Anything crossing a boundary, whether a database row, a query parameter or a request body, is parsed by a Zod schema first.

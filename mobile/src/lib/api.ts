@@ -20,7 +20,8 @@ import {
 
 import { type EntryPatch, type LocalOp } from "./local";
 
-const configured = Constants.expoConfig?.extra?.["apiUrl"];
+const configured =
+  process.env.EXPO_PUBLIC_API_URL ?? Constants.expoConfig?.extra?.["apiUrl"];
 
 const API_URL =
   typeof configured === "string" && configured.length > 0

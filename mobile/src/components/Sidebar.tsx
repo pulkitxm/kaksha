@@ -91,7 +91,7 @@ function Row({
               position: "absolute",
               top: -5,
               right: -8,
-              minWidth: 16,
+              minWidth: 18,
               height: 16,
               paddingHorizontal: 4,
               borderRadius: RADIUS.pill,
@@ -100,7 +100,15 @@ function Row({
               justifyContent: "center",
             }}
           >
-            <Text style={{ color: "#ffffff", fontSize: 9, fontWeight: "700" }}>
+            <Text
+              numberOfLines={1}
+              style={{
+                color: "#ffffff",
+                fontSize: 9,
+                fontWeight: "700",
+                textAlign: "center",
+              }}
+            >
               {badge > 99 ? "99+" : badge}
             </Text>
           </Animated.View>
