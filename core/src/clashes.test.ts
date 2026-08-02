@@ -211,3 +211,75 @@ describe("findClashes", () => {
     expect(clashes.map((clash) => clash.periodId)).toEqual([0, 1]);
   });
 });
+
+describe("elective blocks", () => {
+  const withElectives = (electiveSubjectIds: string[]) => ({
+    ...base,
+    sections: base.sections.map((section) => ({ ...section, electiveSubjectIds })),
+  });
+
+  function clashesWithElectives(electiveSubjectIds: string[], entries: Entry[]) {
+    return findClashes(resolveDataset({ ...withElectives(electiveSubjectIds), entries }));
+  }
+
+  const acrossSections = [
+    entry({ id: "ent_a", sectionId: "sec_6_a" }),
+    entry({ id: "ent_b", sectionId: "sec_6_b" }),
+  ];
+
+  it("treats one teacher taking one elective across sections as a block", () => {
+    const clashes = clashesWithElectives(["sub_hindi"], acrossSections);
+
+    expect(clashes).toHaveLength(1);
+    expect(clashes[0]?.kind).toBe("elective");
+    expect(clashes[0]?.teacherId).toBe("tch_anoop");
+  });
+
+  it("still reports it when the subject is not an elective of both sections", () => {
+    const clashes = findClashes(
+      resolveDataset({
+        ...base,
+        sections: [
+          { ...base.sections[0]!, electiveSubjectIds: ["sub_hindi"] },
+          { ...base.sections[1]!, electiveSubjectIds: [] },
+        ],
+        entries: acrossSections,
+      }),
+    );
+
+    expect(clashes).toHaveLength(1);
+    expect(clashes[0]?.kind).toBe("teacher");
+  });
+
+  it("still reports a teacher taking two different subjects at once", () => {
+    const clashes = clashesWithElectives(
+      ["sub_hindi", "sub_english"],
+      [
+        entry({ id: "ent_a", sectionId: "sec_6_a" }),
+        entry({
+          id: "ent_b",
+          sectionId: "sec_6_b",
+          assignments: [{ subjectId: "sub_english", teacherId: "tch_anoop" }],
+        }),
+      ],
+    );
+
+    expect(clashes).toHaveLength(1);
+    expect(clashes[0]?.kind).toBe("teacher");
+  });
+
+  it("leaves section overlaps alone whatever the electives say", () => {
+    const clashes = clashesWithElectives(
+      ["sub_hindi", "sub_english"],
+      [
+        entry({ id: "ent_a" }),
+        entry({
+          id: "ent_b",
+          assignments: [{ subjectId: "sub_english", teacherId: "tch_surjeet" }],
+        }),
+      ],
+    );
+
+    expect(clashes.map((clash) => clash.kind)).toEqual(["section"]);
+  });
+});

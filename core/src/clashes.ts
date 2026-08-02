@@ -1,6 +1,6 @@
-import type { ResolvedDataset, ResolvedEntry } from "./types.js";
+import type { ResolvedDataset, ResolvedEntry, ResolvedSection } from "./types.js";
 
-export type ClashKind = "section" | "teacher";
+export type ClashKind = "section" | "teacher" | "elective";
 
 export type Clash = {
   id: string;
@@ -78,8 +78,33 @@ function sectionClashes(entries: ResolvedEntry[]): Clash[] {
   return [...groups.values()];
 }
 
-function teacherClashes(entries: ResolvedEntry[]): Clash[] {
+function isElectiveBlock(
+  teacherId: string,
+  entries: ResolvedEntry[],
+  sections: Map<string, ResolvedSection>,
+): boolean {
+  const taught = entries.flatMap((entry) =>
+    entry.assignments
+      .filter((assignment) => assignment.teacher?.id === teacherId)
+      .map((assignment) => ({ subject: assignment.subject, sectionId: entry.sectionId })),
+  );
+
+  if (taught.length < 2) return false;
+  if (new Set(taught.map((item) => item.subject.id)).size !== 1) return false;
+
+  return taught.every((item) =>
+    sections
+      .get(item.sectionId)
+      ?.electives.some((elective) => elective.id === item.subject.id),
+  );
+}
+
+function teacherClashes(
+  entries: ResolvedEntry[],
+  sections: Map<string, ResolvedSection>,
+): Clash[] {
   const slots = new Map<string, Slot>();
+  const byId = new Map(entries.map((entry) => [entry.id, entry]));
 
   for (const entry of entries) {
     for (const assignment of entry.assignments) {
@@ -104,13 +129,18 @@ function teacherClashes(entries: ResolvedEntry[]): Clash[] {
     if (entryIds.length > 1 && slot.sectionIds.size === 1) continue;
 
     const [teacherId = "", period = "", day = ""] = key.split("|");
-    const id = `teacher:${teacherId}:${period}:${entryIds.join("+")}`;
+    const involved = entryIds
+      .map((entryId) => byId.get(entryId))
+      .filter((entry): entry is ResolvedEntry => entry !== undefined);
+    const elective = isElectiveBlock(teacherId, involved, sections);
+
+    const id = `${elective ? "elective" : "teacher"}:${teacherId}:${period}:${entryIds.join("+")}`;
     collect(
       groups,
       id,
       {
         id,
-        kind: "teacher",
+        kind: elective ? "elective" : "teacher",
         periodId: Number(period),
         sectionId: null,
         teacherId,
@@ -128,7 +158,14 @@ export function findClashes(dataset: ResolvedDataset): Clash[] {
     dataset.sections.map((section, index) => [section.id, index]),
   );
 
-  return [...sectionClashes(dataset.entries), ...teacherClashes(dataset.entries)]
+  const sectionById = new Map(
+    dataset.sections.map((section) => [section.id, section] as const),
+  );
+
+  return [
+    ...sectionClashes(dataset.entries),
+    ...teacherClashes(dataset.entries, sectionById),
+  ]
     .map((clash) => ({ ...clash, dayIds: [...clash.dayIds].sort((a, b) => a - b) }))
     .sort(
       (a, b) =>

@@ -41,7 +41,17 @@ export default function Home() {
   }, [checkForUpdate]);
 
   const clashedEntryIds = useMemo(
-    () => new Set(store.clashes.flatMap((clash) => clash.entryIds)),
+    () =>
+      new Set(
+        store.clashes
+          .filter((clash) => clash.kind !== "elective")
+          .flatMap((clash) => clash.entryIds),
+      ),
+    [store.clashes],
+  );
+
+  const clashCount = useMemo(
+    () => store.clashes.filter((clash) => clash.kind !== "elective").length,
     [store.clashes],
   );
 
@@ -181,7 +191,7 @@ export default function Home() {
           <Sidebar
             current={view}
             expanded={layout.width >= 900}
-            clashCount={store.clashes.length}
+            clashCount={clashCount}
             onChange={setView}
           />
         )}
