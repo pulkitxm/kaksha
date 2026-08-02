@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import type { Note } from "@kaksha/core";
 
 import { ConfirmDialog } from "../components/ConfirmDialog";

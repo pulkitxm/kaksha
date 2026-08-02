@@ -14,7 +14,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { subjectPaint, type SurfaceTheme } from "@kaksha/core";
 
 import { RADIUS, SPACING, SPRING_SNAPPY, useTheme } from "../lib/theme";
