@@ -17,3 +17,5 @@ mobile/.expo/
 mobile/android/
 mobile/ios/
 *.apk
+
+/public/

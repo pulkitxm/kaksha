@@ -26,6 +26,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "space.kaksha.app"
     },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
     "plugins": [
       "expo-router",
       "expo-sharing",
