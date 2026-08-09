@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 import {
   ACCESS_HEADER,
   databaseSchema,
@@ -23,17 +24,23 @@ import { accessCode, reportAccessRejected } from "./access";
 import { type EntryPatch, type LocalOp } from "./local";
 
 const FALLBACK_API_URL = "https://kaksha.pulkit.page";
+const SAME_ORIGIN = "";
 
 function usable(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-const candidates = [
-  process.env.EXPO_PUBLIC_API_URL,
-  Constants.expoConfig?.extra?.["apiUrl"],
-];
+function resolveApiUrl(): string {
+  const explicit = process.env.EXPO_PUBLIC_API_URL;
+  if (usable(explicit)) return explicit.trim().replace(/\/+$/, "");
+  if (Platform.OS === "web") return SAME_ORIGIN;
 
-const API_URL = (candidates.find(usable) ?? FALLBACK_API_URL).trim().replace(/\/+$/, "");
+  const configured = Constants.expoConfig?.extra?.["apiUrl"];
+  const base = usable(configured) ? configured : FALLBACK_API_URL;
+  return base.trim().replace(/\/+$/, "");
+}
+
+const API_URL = resolveApiUrl();
 
 export class ApiError extends Error {
   readonly status: number;
