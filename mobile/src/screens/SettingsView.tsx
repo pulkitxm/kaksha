@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { Platform, Text, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 
@@ -93,23 +93,25 @@ export function SettingsView() {
         </Card>
 
         <Card style={{ gap: SPACING.md }}>
-          <SectionLabel text="Updates" />
+          <SectionLabel text={Platform.OS === "web" ? "About" : "Updates"} />
           <Text style={{ color: theme.fgMuted, fontSize: 13 }}>{installedLine}</Text>
-          <Button
-            label="Check for updates"
-            icon="cloud-download-outline"
-            busy={appUpdate.checking}
-            onPress={() => {
-              void appUpdate.check().then((outcome) => {
-                if (outcome === "current") {
-                  toast("You are on the latest version", "success");
-                }
-                if (outcome === "failed") {
-                  toast("Could not check for updates", "error");
-                }
-              });
-            }}
-          />
+          {Platform.OS === "web" ? null : (
+            <Button
+              label="Check for updates"
+              icon="cloud-download-outline"
+              busy={appUpdate.checking}
+              onPress={() => {
+                void appUpdate.check().then((outcome) => {
+                  if (outcome === "current") {
+                    toast("You are on the latest version", "success");
+                  }
+                  if (outcome === "failed") {
+                    toast("Could not check for updates", "error");
+                  }
+                });
+              }}
+            />
+          )}
         </Card>
 
         <Card style={{ gap: SPACING.md }}>
