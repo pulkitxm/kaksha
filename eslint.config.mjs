@@ -13,6 +13,7 @@ export default config(
       "server/drizzle/**",
       "mobile/**",
       "core/dist/**",
+      "public/**",
     ],
   },
   js.configs.recommended,
