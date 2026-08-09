@@ -1,74 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-  CoreBridge,
-  darkEditorTheme,
-  defaultEditorTheme,
-  PlaceholderBridge,
-  RichText,
-  TenTapStartKit,
-  Toolbar,
-  useEditorBridge,
-  useEditorContent,
-} from "@10play/tentap-editor";
-import type { SurfaceTheme } from "@kaksha/core";
 
 import { ConfirmDialog } from "../../src/components/ConfirmDialog";
+import { NoteEditor } from "../../src/components/NoteEditor";
 import { useToast } from "../../src/components/Toast";
 import { Banner, IconButton, PressableScale } from "../../src/components/ui";
 import { useNotes } from "../../src/lib/notes";
 import { SPACING, useTheme } from "../../src/lib/theme";
-
-function editorCss(theme: SurfaceTheme): string {
-  return `
-    .ProseMirror {
-      background-color: ${theme.bg};
-      color: ${theme.fg};
-      font-size: 16px;
-      line-height: 1.6;
-      padding: 4px 2px 120px 2px;
-      caret-color: ${theme.accent};
-    }
-    .ProseMirror h1 { font-size: 26px; font-weight: 700; margin: 18px 0 8px; }
-    .ProseMirror h2 { font-size: 21px; font-weight: 700; margin: 16px 0 6px; }
-    .ProseMirror h3 { font-size: 18px; font-weight: 700; margin: 14px 0 6px; }
-    .ProseMirror p { margin: 6px 0; }
-    .ProseMirror ul, .ProseMirror ol { padding-left: 22px; }
-    .ProseMirror li { margin: 3px 0; }
-    .ProseMirror blockquote {
-      border-left: 3px solid ${theme.lineStrong};
-      padding-left: 12px;
-      color: ${theme.fgMuted};
-      margin: 8px 0;
-    }
-    .ProseMirror code {
-      background-color: ${theme.bgSubtle};
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-size: 14px;
-    }
-    .ProseMirror a { color: ${theme.accent}; }
-    .ProseMirror hr { border: none; border-top: 1px solid ${theme.line}; margin: 16px 0; }
-    .ProseMirror ul[data-type="taskList"] { list-style: none; padding-left: 4px; }
-    .ProseMirror ul[data-type="taskList"] li { display: flex; gap: 8px; }
-    .ProseMirror .is-editor-empty:first-child::before {
-      color: ${theme.fgFaint};
-      content: attr(data-placeholder);
-      float: left;
-      height: 0;
-      pointer-events: none;
-    }
-  `;
-}
 
 const ENTITIES: Record<string, string> = {
   "&amp;": "&",
@@ -102,50 +42,14 @@ export default function NoteScreen() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const saved = useRef(note?.html ?? "");
 
-  const bridgeExtensions = useMemo(
-    () => [
-      ...TenTapStartKit,
-      CoreBridge.configureCSS(editorCss(theme)),
-      PlaceholderBridge.configureExtension({ placeholder: "Start writing" }),
-    ],
-    [theme],
+  const handleChangeHtml = useCallback(
+    (html: string) => {
+      if (!id || html === saved.current) return;
+      saved.current = html;
+      update(id, { html, preview: toPreview(html) });
+    },
+    [id, update],
   );
-
-  const editorTheme = useMemo(() => {
-    const base = theme.isDark ? darkEditorTheme : defaultEditorTheme;
-    return {
-      ...base,
-      toolbar: {
-        ...base.toolbar,
-        toolbarBody: [
-          base.toolbar.toolbarBody,
-          {
-            backgroundColor: theme.bgSubtle,
-            borderTopColor: theme.line,
-            borderBottomColor: theme.line,
-          },
-        ],
-      },
-      webview: [base.webview, { backgroundColor: theme.bg }],
-      webviewContainer: [base.webviewContainer, { backgroundColor: theme.bg }],
-    };
-  }, [theme]);
-
-  const editor = useEditorBridge({
-    autofocus: false,
-    avoidIosKeyboard: true,
-    initialContent: note?.html && note.html.length > 0 ? note.html : "<p></p>",
-    bridgeExtensions,
-    theme: editorTheme,
-  });
-
-  const html = useEditorContent(editor, { type: "html", debounceInterval: 600 });
-
-  useEffect(() => {
-    if (!id || html === undefined || html === saved.current) return;
-    saved.current = html;
-    update(id, { html, preview: toPreview(html) });
-  }, [html, id, update]);
 
   if (!note) {
     return (
@@ -241,14 +145,7 @@ export default function NoteScreen() {
         />
       </View>
 
-      <RichText editor={editor} style={{ flex: 1, backgroundColor: theme.bg }} />
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ position: "absolute", width: "100%", bottom: 0 }}
-      >
-        <Toolbar editor={editor} />
-      </KeyboardAvoidingView>
+      <NoteEditor initialHtml={note.html} onChangeHtml={handleChangeHtml} />
 
       <ConfirmDialog
         visible={confirmingDelete}

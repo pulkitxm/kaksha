@@ -12,6 +12,8 @@
   },
   "scripts": {
     "build": "bun run --filter @kaksha/core build && bun run --filter @kaksha/server build",
+    "build:web": "cd mobile && bun install && bun run bundle:web",
+    "build:site": "bun run build && bun run build:web",
     "dev:server": "bun run --filter @kaksha/server dev",
     "typecheck": "bun run --filter @kaksha/core typecheck && bun run --filter @kaksha/server typecheck",
     "lint": "bunx eslint .",

@@ -8,7 +8,9 @@
     "android": "bunx expo start --android",
     "typecheck": "bunx tsc --noEmit",
     "prebuild": "bunx expo prebuild --platform android --clean",
+    "web": "bunx expo start --web",
     "bundle:android": "bunx expo export --platform android --output-dir .expo/export",
+    "bundle:web": "bunx expo export --platform web --output-dir ../public",
     "apk": "bunx eas-cli build --platform android --profile preview",
     "apk:local": "bun run scripts/build-apk.mjs"
   },
@@ -30,6 +32,7 @@
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "^57.0.2",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.2",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.0",

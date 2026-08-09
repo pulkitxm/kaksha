@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, Platform, StyleSheet, Text, View } from "react-native";
 import { captureRef } from "react-native-view-shot";
-import * as Sharing from "expo-sharing";
 import {
   buildTeacherShareModel,
   resolveDataset,
@@ -17,6 +16,7 @@ import {
 import { SelectField } from "../components/Select";
 import { useToast } from "../components/Toast";
 import { Button, Chip } from "../components/ui";
+import { shareImage } from "../lib/shareImage";
 import { useStore } from "../lib/store";
 import { RADIUS, SPACING, useTheme } from "../lib/theme";
 
@@ -32,6 +32,9 @@ const EMPTY_SHARE_MODEL: ShareModel = {
   rows: [],
   footnote: "",
 };
+
+const SHARE_LABEL = Platform.OS === "web" ? "Download image" : "Share as image";
+const SHARE_ICON = Platform.OS === "web" ? "download-outline" : "share-social-outline";
 
 function ShareCard({
   model,
@@ -335,16 +338,13 @@ export function ShareView({
     setPreview(null);
   }, [model, exportTheme]);
 
-  async function deliver(uri: string) {
-    if (await Sharing.isAvailableAsync()) {
-      await Sharing.shareAsync(uri, {
-        mimeType: "image/png",
-        dialogTitle: model.title,
-      });
-      toast("Image exported", "success");
-    } else {
+  async function deliver(uri: string, fileName: string) {
+    const outcome = await shareImage(uri, { title: model.title, fileName });
+    if (outcome === "unavailable") {
       toast("Sharing is not available on this device", "error");
+      return;
     }
+    toast(outcome === "downloaded" ? "Image downloaded" : "Image exported", "success");
   }
 
   return (
@@ -407,9 +407,9 @@ export function ShareView({
         </View>
         <View style={{ flex: 1 }}>
           <Button
-            label={job?.intent === "share" ? "Preparing image" : "Share as image"}
+            label={job?.intent === "share" ? "Preparing image" : SHARE_LABEL}
             variant="primary"
-            icon="share-social-outline"
+            icon={SHARE_ICON}
             busy={job?.intent === "share"}
             disabled={job !== null}
             onPress={() => {
@@ -459,7 +459,7 @@ export function ShareView({
               return;
             }
             if (intent === "share") {
-              void deliver(uri);
+              void deliver(uri, job.fileName);
               return;
             }
             Image.getSize(
