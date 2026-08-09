@@ -6,7 +6,7 @@ A school timetable system. Three workspaces:
 | --------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `core`    | Domain types, Zod schemas, filtering and derivation. No runtime dependencies beyond Zod, so it runs on the server and in the app. |
 | `server`  | Express API over Postgres via Drizzle. Deploys to Vercel.                                                                         |
-| `mobile`  | Expo app, Android first, laid out for tablets.                                                                                    |
+| `mobile`  | Expo app, Android first, laid out for tablets. The same code ships as the website.                                                |
 
 ## Rules that CI enforces
 
@@ -30,6 +30,37 @@ bun test               # bun's test runner
 bun run check:comments # comment policy
 bun run dead-code      # knip
 bun run build          # core then server
+bun run build:site     # core, server, then the web bundle into public/
+```
+
+### The website
+
+`bun run build:site` exports the Expo app for the browser into `public/`, which
+is generated and git ignored. Vercel serves that directory and rewrites `/api`
+to the Express function, so the site and the API share one origin and the
+browser talks to a relative `/api`.
+
+Everything in `mobile/public/` is copied into the export as is, and
+`mobile/public/index.html` is the page template, which is where the title, the
+description and the Open Graph tags live. `%LANG_ISO_CODE%` and `%WEB_TITLE%`
+are filled in from `app.json`. The card image is `mobile/public/og.png` at
+2400x1260, referenced by absolute URL because scrapers do not resolve relative
+ones. An `app/+html.tsx` would be ignored here, since Expo only renders it for
+static output.
+
+Anything the browser cannot do lives in a `.web` sibling that Metro picks up
+for the web platform: `cache.web.ts` writes to `localStorage` instead of
+`expo-file-system`, `access.web.ts` keeps the setup code there instead of
+`expo-secure-store`, `update.web.ts` makes the APK updater inert, and
+`shareImage.web.ts` downloads the PNG instead of calling `expo-sharing`.
+`NoteEditor.web.tsx` is a contenteditable surface, because tentap runs inside a
+WebView and `react-native-webview` renders a placeholder on the web.
+
+To run it locally, point the app at a local API, since a bare `expo start --web`
+has no server behind it:
+
+```bash
+cd mobile && EXPO_PUBLIC_API_URL=http://localhost:4000 bun run web
 ```
 
 ### Building an APK
